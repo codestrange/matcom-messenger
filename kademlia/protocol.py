@@ -1,14 +1,15 @@
 from rpyc import Connection, Service
 from bucket import Bucket
+from contact import Contact
 from bucket_table import BucketTable
 
 
 class ProtocolService(Service):
-    def __init__(self, id:int):
-        # Invoked parent init
+    def __init__(self, id:int, k:int, b:int):
+        super(ProtocolService, self).__init__()
         self.data = {}
         self.id = id
-        self.table = BucketTable()
+        self.table = BucketTable(k, b, id)
 
     def on_connect(self, conn:Connection):
         pass
@@ -18,7 +19,7 @@ class ProtocolService(Service):
 
     def exposed_store(self, client:Contact, key:int, value:object) -> bool:
         self.update_contact(client)
-        self.data[key] = values
+        self.data[key] = value
         return True
 
     def exposed_ping(self, client:Contact) -> bool:
@@ -36,5 +37,5 @@ class ProtocolService(Service):
         except KeyError:
             return None
 
-    def update_contact(contact:Contact):
+    def update_contact(self, contact:Contact):
         pass
