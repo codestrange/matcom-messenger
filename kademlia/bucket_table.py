@@ -14,8 +14,14 @@ class BucketTable:
     def get_bucket(self, hash:int) -> Bucket:
         distance = self.hash ^ hash
         index = max([i for i in range(self.b) if (distance & (1<<i)) > 0])
-        return self.buckets[index]
+        self.buckets[index].acquire()
+        result = self.buckets[index]
+        self.buckets[index].release()
+        return result
 
     def update(self, contact:Contact) -> bool:
         bucket = self.get_bucket(contact.hash)
-        return bucket.update(contact)
+        bucket.semaphore.acquire()
+        result = bucket.update(contact)
+        bucket.semaphore.release()
+        return result

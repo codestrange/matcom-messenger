@@ -1,4 +1,4 @@
-from rpyc import Connection, Service
+from rpyc import Connection, Service, connect
 from bucket import Bucket
 from contact import Contact
 from bucket_table import BucketTable
@@ -38,4 +38,19 @@ class ProtocolService(Service):
             return None
 
     def update_contact(self, contact:Contact):
-        pass
+        if not self.table.update(contact):
+            bucket = self.table.get_bucket(contact.hash)
+            to_remove = None
+            bucket.semaphore.acquire()
+            for stored in bucket:
+                try:
+                    connection = connect(stored.ip, str(stored.port))
+                    connection.ping()
+                except:
+                    to_remove = stored
+                    break
+            if to_remove:
+                bucket.remove_by_contact(to_remove)
+                bucket.update(contact)
+            bucket.semaphore.release()
+

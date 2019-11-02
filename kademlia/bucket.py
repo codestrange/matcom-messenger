@@ -34,3 +34,6 @@ class Bucket:
         if index < 0:
             return False
         self.nodes.pop(index)
+
+    def __iter__(self):
+        return iter(self.nodes)
