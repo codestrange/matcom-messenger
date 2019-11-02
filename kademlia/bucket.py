@@ -1,5 +1,5 @@
 from contact import Contact
-from multiprocessing import Semaphore
+from threading import Semaphore
 
 
 class Bucket:
