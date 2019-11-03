@@ -1,10 +1,10 @@
 from rpyc import Connection
-from .contact import 
+from .contact import Contact
 from .protocol import ProtocolService
 
 
 class KademliaService(ProtocolService):
-    def __init__(self, id:int, k: int, b:int, a:int)
+    def __init__(self, id:int, k: int, b:int, a:int):
         super(KademliaService, self).__init__(id, k, b)
 
     def on_connect(self, conn:Connection):
