@@ -6,11 +6,12 @@ from .utils import try_function
 
 
 class ProtocolService(Service):
-    def __init__(self, my_contact:Contact, k:int, b:int):
+    def __init__(self, my_contact:Contact, k:int, b:int, value_cloner):
         super(ProtocolService, self).__init__()
         self.data = {}
-        self.my_contact = my_contact
+        self.my_contact = Contact.clone(my_contact)
         self.table = BucketTable(k, b, my_contact.hash)
+        self.value_cloner = value_cloner
 
     def on_connect(self, conn:Connection):
         pass
@@ -19,19 +20,24 @@ class ProtocolService(Service):
         pass
 
     def exposed_store(self, client:Contact, key:int, value:object) -> bool:
+        client = Contact.clone(client)
+        value = self.value_cloner(value)
         self.update_contact(client)
         self.data[key] = value
         return True
 
     def exposed_ping(self, client:Contact) -> bool:
+        client = Contact.clone(client)
         self.update_contact(client)
         return True
 
-    def exposed_find_node(self, client:Contact, id:int) -> Bucket:
+    def exposed_find_node(self, client:Contact, id:int) -> list:
+        client = Contact.clone(client)
         self.update_contact(client)
-        return self.table.get_bucket(id)
+        return self.table.get_bucket(id).nodes
 
     def exposed_find_value(self, client:Contact, key:int) -> object:
+        client = Contact.clone(client)
         self.update_contact(client)
         try:
             return self.data[key]

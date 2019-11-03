@@ -4,6 +4,9 @@ class Contact:
         self.ip = ip
         self.port = port
 
+    def clone(contact):
+        return Contact(contact.hash, contact.ip, contact.port)
+
     def __eq__(self, contact) -> bool:
         return self.hash == contact.hash and self.ip == contact.ip and self.port == contact.port
 

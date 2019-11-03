@@ -3,12 +3,13 @@ from threading import Semaphore
 from rpyc import Connection
 from .contact import Contact
 from .protocol import ProtocolService
+from .contact import Contact
 from .utils import KContactSortedArray, ThreadManager, try_function
 
 
 class KademliaService(ProtocolService):
-    def __init__(self, my_contact:Contact, k: int, b:int, a:int):
-        super(KademliaService, self).__init__(my_contact, k, b)
+    def __init__(self, my_contact:Contact, k: int, b:int, a:int, value_cloner):
+        super(KademliaService, self).__init__(my_contact, k, b, value_cloner)
         self.a = a
 
     def on_connect(self, conn:Connection):
@@ -18,7 +19,7 @@ class KademliaService(ProtocolService):
         pass
 
     def exposed_client_store(self, key:int, value:object) -> bool:
-        pass
+        value = self.value_cloner(value)
 
     def exposed_client_find_node(self, id:int) -> list:
         queue = Queue()
@@ -48,8 +49,8 @@ class KademliaService(ProtocolService):
         if not result:
             return
         self.table.update(contact)
-        bucket = connection.root.find_node(self.my_contact, contact.hash)
-        for new_contact in bucket:
+        new_contacts = map(Contact.clone, connection.root.find_node(self.my_contact, contact.hash)) 
+        for new_contact in new_contacts:
             result, _ = self.ping(new_contact.ip, new_contact.port)
             if not result:
                 continue
