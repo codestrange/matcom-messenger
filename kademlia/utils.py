@@ -44,7 +44,7 @@ class ThreadManager:
 
 
 class KContactSortedArray:
-    def __init__(self, k:int, reference:Contact):
+    def __init__(self, k:int, reference:int):
         self.k = k
         self.values = []
         self.reference = reference
@@ -52,8 +52,8 @@ class KContactSortedArray:
 
     def push(self, contact:Contact) -> bool:
         self.semaphore.acquire()
-        difference = self.reference.hash ^ contact.hash
-        index = bisect([d for d, c in self.values], difference)
+        difference = self.reference ^ contact.hash
+        index = bisect([d for d, _ in self.values], difference)
         self.values.insert(index, (difference, contact))
         while len(self.values) > self.k:
             self.values.pop()
@@ -61,7 +61,7 @@ class KContactSortedArray:
 
     def __iter__(self):
         self.semaphore.acquire()
-        for d, c in self.values:
+        for _, c in self.values:
             yield c
         self.semaphore.release()
 
