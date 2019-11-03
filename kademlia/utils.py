@@ -1,4 +1,4 @@
-from bisect import bisect
+from bisect import bisect_left
 from threading import Semaphore, Thread
 from time import sleep
 from .contact import Contact
@@ -53,10 +53,11 @@ class KContactSortedArray:
     def push(self, contact:Contact) -> bool:
         self.semaphore.acquire()
         difference = self.reference.hash ^ contact.hash
-        index = bisect([d for d, c in self.values], difference)
-        self.values.insert(index, (difference, contact))
-        while len(self.values) > self.k:
-            self.values.pop()
+        index = bisect_left([d for d, c in self.values], difference)
+        if self.values[index][0] != difference:
+            self.values.insert(index, (difference, contact))
+            while len(self.values) > self.k:
+                self.values.pop()
         self.semaphore.release()
 
     def __iter__(self):
