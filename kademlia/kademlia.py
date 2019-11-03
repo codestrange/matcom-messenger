@@ -32,27 +32,26 @@ class KademliaService(ProtocolService):
             top_contacts.push(contact)
             if queue.qsize() >= self.a:
                 break
-        manager = ThreadManager(self.a, queue.qsize, self.find_node_lookup, args=(queue, top_contacts, visited, queue_lock))
+        manager = ThreadManager(self.a, queue.qsize, self.find_node_lookup, args=(id, queue, top_contacts, visited, queue_lock))
         manager.start()
         for contact in top_contacts:
             if contact.hash == id:
                 return contact
         return None
 
-    def find_node_lookup(self, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
+    def find_node_lookup(self, id:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
         contact = None
         try:
             contact = queue.get(timeout=1)
         except Empty:
             return
-        result, connection = self.ping(contact.ip, contact.port)
+        result, new_contacts = self.find_node(contact, id)
         if not result:
             return
         self.table.update(contact)
-        new_contacts = map(Contact.clone, connection.root.find_node(self.my_contact, contact.hash)) 
+        new_contacts = map(Contact.clone, new_contacts) 
         for new_contact in new_contacts:
-            result, _ = self.ping(new_contact.ip, new_contact.port)
-            if not result:
+            if not self.ping(new_contact)[0]:
                 continue
             self.table.update(new_contact)
             queue_lock.acquire()

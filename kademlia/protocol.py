@@ -67,10 +67,28 @@ class ProtocolService(Service):
                 bucket.update(contact)
             bucket.semaphore.release()
 
-    @try_function()
-    def ping(self, ip, port):
-        connection = connect(ip, str(port))
-        connection.ping()
+    def connect(self, contact: Contact) -> Connection:
         self.lamport += 1
-        connection.root.ping(self.my_contact, self.lamport)
+        connection = connect(contact.ip, str(contact.port))
+        connection.ping()
         return connection
+
+    @try_function()
+    def ping(self, contact:Contact) -> bool:
+        connection = self.connect(contact)
+        return connection.root.ping(self.my_contact, self.lamport)
+
+    @try_function()
+    def store(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
+        connection = self.connect(contact)
+        return connection.root.store(self.my_contact, self.lamport, key, value, store_time)
+
+    @try_function()
+    def find_node(self, contact:Contact, id:int) -> list:
+        connection = self.connect(contact)
+        return connection.root.find_node(self.my_contact, self.lamport, id)
+
+    @try_function()
+    def find_value(self, contact:Contact, key:int) -> object:
+        connection = self.connect(contact)
+        return connection.root.find_value(self.my_contact, self.lamport, key)
