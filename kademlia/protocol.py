@@ -2,6 +2,7 @@ from rpyc import connect, Connection, Service
 from .bucket import Bucket
 from .bucket_table import BucketTable
 from .contact import Contact
+from .utils import try_function
 
 
 class ProtocolService(Service):
@@ -43,13 +44,14 @@ class ProtocolService(Service):
             to_remove = None
             bucket.semaphore.acquire()
             for stored in bucket:
-                try:
-                    connection = connect(stored.ip, str(stored.port))
-                    connection.ping()
-                except:
+                if not self.ping(stored.ip, stored.port)[0]:
                     to_remove = stored
-                    break
             if to_remove:
                 bucket.remove_by_contact(to_remove)
                 bucket.update(contact)
             bucket.semaphore.release()
+
+    @try_function()
+    def ping(self, ip, port):
+        connection = connect(ip, str(port))
+        connection.ping()
