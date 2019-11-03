@@ -1,7 +1,7 @@
-from rpyc import Connection, Service, connect
-from bucket import Bucket
-from contact import Contact
-from bucket_table import BucketTable
+from rpyc import connect, Connection, Service
+from .bucket import Bucket
+from .bucket_table import BucketTable
+from .contact import Contact
 
 
 class ProtocolService(Service):
@@ -53,4 +53,3 @@ class ProtocolService(Service):
                 bucket.remove_by_contact(to_remove)
                 bucket.update(contact)
             bucket.semaphore.release()
-

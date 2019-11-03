@@ -1,5 +1,5 @@
-from bucket import Bucket
-from contact import Contact
+from .bucket import Bucket
+from .contact import Contact
 
 
 class BucketTable:

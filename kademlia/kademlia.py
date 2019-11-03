@@ -1,6 +1,6 @@
 from rpyc import Connection
-from contact import 
-from protocol import ProtocolService
+from .contact import 
+from .protocol import ProtocolService
 
 
 class KademliaService(ProtocolService):

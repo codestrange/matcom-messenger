@@ -1,5 +1,5 @@
-from contact import Contact
 from threading import Semaphore
+from .contact import Contact
 
 
 class Bucket:

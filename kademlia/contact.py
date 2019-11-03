@@ -4,5 +4,8 @@ class Contact:
         self.ip = ip
         self.port = port
 
-    def __eq__(self, contact:Contact) -> bool:
-        return self.hash = contact.hash and self.ip = contact.ip and self.port = contact.port
+    def __eq__(self, contact) -> bool:
+        return self.hash == contact.hash and self.ip == contact.ip and self.port == contact.port
+
+    def __repr__(self):
+        return f"<{self.hash}, {self.ip}, {self.port}>"
