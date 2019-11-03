@@ -64,3 +64,20 @@ class KContactSortedArray:
         for d, c in self.values:
             yield c
         self.semaphore.release()
+
+
+def try_function(times=3, sleep_time=0):
+    def decorator(function):
+        def inner(*args, **kwargs):
+            count = 0
+            while count < times:
+                try:
+                    result = function(*args, **kwargs)
+                    return True, result
+                except:
+                    count += 1
+                if sleep_time:
+                    sleep(sleep_time)
+            return False, None
+        return inner
+    return decorator
