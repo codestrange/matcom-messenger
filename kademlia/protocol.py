@@ -43,10 +43,15 @@ class ProtocolService(Service):
             to_remove = None
             bucket.semaphore.acquire()
             for stored in bucket:
-                try:
-                    connection = connect(stored.ip, str(stored.port))
-                    connection.ping()
-                except:
+                count = 0
+                while count < 5:
+                    try:
+                        connection = connect(stored.ip, str(stored.port))
+                        connection.ping()
+                        break
+                    except:
+                        count += 1
+                if count == 5:
                     to_remove = stored
                     break
             if to_remove:
