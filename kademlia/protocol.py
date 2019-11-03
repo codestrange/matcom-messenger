@@ -6,11 +6,11 @@ from .utils import try_function
 
 
 class ProtocolService(Service):
-    def __init__(self, id:int, k:int, b:int):
+    def __init__(self, my_contact:Contact, k:int, b:int):
         super(ProtocolService, self).__init__()
         self.data = {}
-        self.id = id
-        self.table = BucketTable(k, b, id)
+        self.my_contact = my_contact
+        self.table = BucketTable(k, b, my_contact.hash)
 
     def on_connect(self, conn:Connection):
         pass
@@ -55,3 +55,5 @@ class ProtocolService(Service):
     def ping(self, ip, port):
         connection = connect(ip, str(port))
         connection.ping()
+        connection.root.ping()
+        return connection
