@@ -20,12 +20,16 @@ class ProtocolService(Service):
     def on_disconnect(self, conn:Connection):
         pass
 
-    def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object) -> bool:
+    def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
         client = Contact.clone(client)
         value = self.value_cloner(value)
         self.lamport = max(client_lamport, self.lamport + 1) 
         self.update_contact(client)
-        self.data[key] = value
+        try:
+            actual_value, actual_time = self.data[key]
+        except KeyError:
+            actual_value, actual_time = (value, store_time)
+        self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
         return True
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
@@ -45,7 +49,8 @@ class ProtocolService(Service):
         self.lamport = max(client_lamport, self.lamport + 1)
         self.update_contact(client)
         try:
-            return self.data[key]
+            value, stored_time = self.data[key]
+            return value, stored_time
         except KeyError:
             return None
 
