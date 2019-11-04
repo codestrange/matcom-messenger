@@ -1,3 +1,4 @@
+from threading import Semaphore
 from rpyc import connect, Connection, Service
 from .bucket import Bucket
 from .bucket_table import BucketTable
@@ -10,6 +11,7 @@ class ProtocolService(Service):
         super(ProtocolService, self).__init__()
         self.data = {}
         self.lamport = 0
+        self.lamport_lock = Semaphore()
         self.my_contact = Contact.clone(my_contact)
         self.table = BucketTable(k, b, my_contact.hash)
         self.value_cloner = value_cloner
@@ -23,7 +25,7 @@ class ProtocolService(Service):
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
         client = Contact.clone(client)
         value = self.value_cloner(value)
-        self.lamport = max(client_lamport, self.lamport + 1) 
+        self.update_lamport(client_lamport)
         self.update_contact(client)
         try:
             actual_value, actual_time = self.data[key]
@@ -34,19 +36,19 @@ class ProtocolService(Service):
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
         client = Contact.clone(client)
-        self.lamport = max(client_lamport, self.lamport + 1)
+        self.update_lamport(client_lamport)
         self.update_contact(client)
         return True
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
         client = Contact.clone(client)
-        self.lamport = max(client_lamport, self.lamport + 1)
+        self.update_lamport(client_lamport)
         self.update_contact(client)
         return self.table.get_bucket(id).nodes
 
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
         client = Contact.clone(client)
-        self.lamport = max(client_lamport, self.lamport + 1)
+        self.update_lamport(client_lamport)
         self.update_contact(client)
         try:
             value, stored_time = self.data[key]
@@ -67,8 +69,13 @@ class ProtocolService(Service):
                 bucket.update(contact)
             bucket.semaphore.release()
 
+    def update_lamport(self, client_lamport:int=0):
+        self.lamport_lock.acquire()
+        self.lamport = max(client_lamport, self.lamport + 1)
+        self.lamport_lock.release()
+
     def connect(self, contact: Contact) -> Connection:
-        self.lamport += 1
+        self.update_lamport()
         connection = connect(contact.ip, str(contact.port))
         connection.ping()
         return connection
