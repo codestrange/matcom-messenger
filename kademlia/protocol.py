@@ -38,7 +38,7 @@ class ProtocolService(Service):
         client = Contact.clone(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
-        return True
+        return self.my_contact
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
         client = Contact.clone(client)
