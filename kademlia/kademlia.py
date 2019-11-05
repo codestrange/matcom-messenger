@@ -158,6 +158,9 @@ class KademliaService(ProtocolService):
             else:
                 queue_lock.release()
 
+    def exposed_connect_to_network(self):
+        pass
+
     @classmethod
     def get_name(cls) -> str:
         name = cls.__name__
