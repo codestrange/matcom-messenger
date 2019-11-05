@@ -164,3 +164,7 @@ class KademliaService(ProtocolService):
         service = 'Service'
         if name.endswith(service):
             return name[:-len(service)]
+
+    @staticmethod
+    def start(id):
+        pass
