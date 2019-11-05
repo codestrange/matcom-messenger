@@ -157,3 +157,10 @@ class KademliaService(ProtocolService):
                 top.push(new_contact)
             else:
                 queue_lock.release()
+
+    @classmethod
+    def get_name(cls) -> str:
+        name = cls.__name__
+        service = 'Service'
+        if name.endswith(service):
+            return name[:-len(service)]
