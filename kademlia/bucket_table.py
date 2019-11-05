@@ -63,3 +63,6 @@ class BucketTable:
                 yield contact
             right[rindex].semaphore.acquire()
             rindex += 1
+
+    def __iter__(self):
+        return iter(self.buckets)
