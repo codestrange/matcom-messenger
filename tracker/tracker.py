@@ -1,8 +1,11 @@
+import socket
 from random import randint
 from threading import Thread
 from time import sleep
+from rpyc import discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
+from .utils import get_hash
 from ..kademlia.kademlia import Contact, KademliaService
 
 
@@ -35,8 +38,22 @@ class TrackerService(KademliaService):
 
     @staticmethod
     def get_id() -> str:
-        pass
+        return get_hash(':'.join([TrackerService.get_ip()]))
 
     @staticmethod
     def get_ip() -> str:
-        pass
+        ip = '0.0.0.0'
+        try:
+            peers = discover(TrackerService.ALIASES[0])
+            for peer in peers:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                try:
+                    s.connect(peer)
+                    ip = s.getsockname()[0]
+                except:
+                    continue
+                finally:
+                    s.close()
+        except:
+            ip = socket.gethostbyname(socket.gethostname()) # This should never happen if 
+        return ip
