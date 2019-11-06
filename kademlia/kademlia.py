@@ -177,7 +177,7 @@ class KademliaService(ProtocolService):
                     while count < 5:
                         try:
                             conn = connect(ip, port)
-                            contact = conn.root.ping()
+                            contact = Contact.clone(conn.root.ping())
                             break
                         except:
                             count += 1
@@ -202,9 +202,11 @@ class KademliaService(ProtocolService):
                     if count == 5:
                         debug(f'No se puedo realizar el iterative find node')
                 self.is_started_node = True
+                return True
             except Exception as e:
                 exception(e)
                 sleep(5)
+        return False
 
     @classmethod
     def get_name(cls) -> str:
