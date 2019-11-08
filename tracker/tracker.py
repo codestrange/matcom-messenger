@@ -33,9 +33,9 @@ class TrackerService(KademliaService):
 
     @staticmethod
     def start():
-        id = TrackerService.get_id()
         ip = TrackerService.get_ip()
         port = randint(8000, 9000)
+        id = TrackerService.get_id_hash(f"{ip}:{port}")
         contact = Contact(id, ip, port)
         thread_register = Thread(target=TrackerService.__start_register)
         thread_service = Thread(target=TrackerService.__start_service, args=(contact, ))
