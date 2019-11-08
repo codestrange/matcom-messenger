@@ -1,4 +1,5 @@
 from bisect import bisect_left
+from hashlib import sha1
 from threading import Semaphore, Thread
 from time import sleep
 from .contact import Contact
@@ -65,6 +66,10 @@ class KContactSortedArray:
         for _, c in self.values:
             yield c
         self.semaphore.release()
+
+
+def get_hash(elem: str) -> int:
+    return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
 def try_function(times=3, sleep_time=0):

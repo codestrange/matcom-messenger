@@ -6,18 +6,19 @@ from rpyc import  connect, discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
 from .utils import get_hash
-from ..kademlia import Contact, KademliaService
+from .kademlia import Contact, KademliaService
 
 
 class TrackerService(KademliaService):
     @staticmethod
     def __start_register():
         while True:
-            server = UDPRegistryServer(pruning_timeout=DEFAULT_PRUNING_TIMEOUT)
             try:
+                server = UDPRegistryServer(pruning_timeout=DEFAULT_PRUNING_TIMEOUT)
                 server.start()
                 break
             except:
+                server.close()
                 sleep(5)
 
     @staticmethod
