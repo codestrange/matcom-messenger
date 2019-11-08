@@ -1,5 +1,6 @@
 from logging import critical, debug, error, exception, info, warning 
 from queue import Empty, Queue
+from random import randint
 from threading import Semaphore
 from time import sleep
 from rpyc import connect, Connection, discover
@@ -166,7 +167,6 @@ class KademliaService(ProtocolService):
         while not self.is_started_node:
             try:
                 try:
-                    # TODO: Comprobar que el nombre del servicio este bien
                     service_name = get_name(self.__class__)
                     info(f'Nombre del servidor en el connect_to_network: {service_name}')
                     nodes = discover(service_name)
@@ -177,7 +177,7 @@ class KademliaService(ProtocolService):
                     while count < 5:
                         try:
                             conn = connect(ip, port)
-                            contact = conn.root.ping()
+                            contact = Contact.clone(conn.root.ping())
                             break
                         except:
                             count += 1
@@ -190,10 +190,10 @@ class KademliaService(ProtocolService):
                 except Exception as e:
                     raise Exception(f'No se puedo realizar el primer iterative find node por: {e}')
                 count_of_buckets = len(self.table)
-                for index_of_bucket in range(count_of_buckets):
+                for i in range(count_of_buckets):
                     count = 0
                     while count < 5:
-                        key = None # TODO: Calcular una llave random para cada bucket
+                        key = randint(2**i, 2**(i + 1) - 1)
                         try:
                             self.exposed_client_find_node(key)
                             break
@@ -202,9 +202,11 @@ class KademliaService(ProtocolService):
                     if count == 5:
                         debug(f'No se puedo realizar el iterative find node')
                 self.is_started_node = True
+                return True
             except Exception as e:
                 exception(e)
                 sleep(5)
+        return False
 
     @classmethod
     def get_name(cls) -> str:
