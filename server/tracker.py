@@ -1,4 +1,4 @@
-from logging import basicConfig, debug, error, DEBUG, BASIC_FORMAT
+from logging import basicConfig, debug, error, exception, DEBUG, BASIC_FORMAT
 from random import randint
 from threading import Thread
 from time import sleep
@@ -37,12 +37,13 @@ class TrackerService(KademliaService):
                 debug('Creating instace of service')
                 service = TrackerService(contact, 3, 126, 3, None)
                 debug('Creating instace of ThreadedServer')
-                server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
+                server = ThreadedServer(service, port=contact.port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
                 debug('Starting the service')
                 server.start()
                 break
-            except:
+            except Exception as e:
                 error('Error starting service, sleeping 5 seconds and trying again')
+                exception(e)
                 if not server is None:
                     server.close()
                 sleep(5)

@@ -1,3 +1,4 @@
+from logging import debug
 from .bucket import Bucket
 from .contact import Contact
 
@@ -20,7 +21,8 @@ class BucketTable:
 
     def get_bucket_index(self, hash:int) -> int:
         distance = self.hash ^ hash
-        return max([i for i in range(self.b) if (distance & (1<<i)) > 0])
+        debug(f'Distance between {self.hash} and {hash} = {distance}')
+        return max([i for i in range(self.b) if distance & (1<<i) > 0])
 
     def update(self, contact:Contact) -> bool:
         bucket = self.get_bucket(contact.hash)

@@ -15,6 +15,8 @@ class ProtocolService(Service):
         self.my_contact = Contact.clone(my_contact)
         self.table = BucketTable(k, b, my_contact.hash)
         self.value_cloner = value_cloner
+        self.k = k
+        self.b = b
 
     def on_connect(self, conn:Connection):
         pass

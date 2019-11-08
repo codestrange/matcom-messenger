@@ -167,11 +167,12 @@ class KademliaService(ProtocolService):
         while not self.is_started_node:
             try:
                 try:
-                    service_name = get_name(self.__class__)
+                    service_name = KademliaService.get_name(self.__class__)
                     info(f'Nombre del servidor en el connect_to_network: {service_name}')
                     nodes = discover(service_name)
                 except DiscoveryError:
                     raise Exception(f'No se encontro ningun servicio')
+                mark = False
                 for ip, port in nodes:
                     count = 0
                     while count < 5:
@@ -184,9 +185,13 @@ class KademliaService(ProtocolService):
                     if count == 5:
                         debug(f'El servicio con direccion {ip}:{port} no responde')
                         continue
-                    self.table.update(contact)
+                    if not contact == self.my_contact:
+                        mark = True
+                        self.table.update(contact)
+                if not mark:
+                    raise Exception('Not discover node different')
                 try:
-                    self.exposed_client_find_node(self.my_contact)
+                    self.exposed_client_find_node(self.my_contact.hash)
                 except Exception as e:
                     raise Exception(f'No se puedo realizar el primer iterative find node por: {e}')
                 count_of_buckets = len(self.table)
@@ -208,7 +213,7 @@ class KademliaService(ProtocolService):
                 sleep(5)
         return False
 
-    @classmethod
+    @staticmethod
     def get_name(cls) -> str:
         name = cls.__name__
         service = 'Service'
