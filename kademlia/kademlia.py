@@ -1,6 +1,10 @@
+from logging import critical, debug, error, exception, info, warning 
 from queue import Empty, Queue
+from random import randint
 from threading import Semaphore
-from rpyc import Connection
+from time import sleep
+from rpyc import connect, Connection, discover
+from rpyc.utils.factory import DiscoveryError
 from .contact import Contact
 from .protocol import ProtocolService
 from .contact import Contact
@@ -11,6 +15,7 @@ class KademliaService(ProtocolService):
     def __init__(self, my_contact:Contact, k: int, b:int, a:int, value_cloner):
         super(KademliaService, self).__init__(my_contact, k, b, value_cloner)
         self.a = a
+        self.is_started_node = False
 
     def on_connect(self, conn:Connection):
         pass
@@ -157,6 +162,51 @@ class KademliaService(ProtocolService):
                 top.push(new_contact)
             else:
                 queue_lock.release()
+
+    def exposed_connect_to_network(self):
+        while not self.is_started_node:
+            try:
+                try:
+                    service_name = get_name(self.__class__)
+                    info(f'Nombre del servidor en el connect_to_network: {service_name}')
+                    nodes = discover(service_name)
+                except DiscoveryError:
+                    raise Exception(f'No se encontro ningun servicio')
+                for ip, port in nodes:
+                    count = 0
+                    while count < 5:
+                        try:
+                            conn = connect(ip, port)
+                            contact = Contact.clone(conn.root.ping())
+                            break
+                        except:
+                            count += 1
+                    if count == 5:
+                        debug(f'El servicio con direccion {ip}:{port} no responde')
+                        continue
+                    self.table.update(contact)
+                try:
+                    self.exposed_client_find_node(self.my_contact)
+                except Exception as e:
+                    raise Exception(f'No se puedo realizar el primer iterative find node por: {e}')
+                count_of_buckets = len(self.table)
+                for i in range(count_of_buckets):
+                    count = 0
+                    while count < 5:
+                        key = randint(2**i, 2**(i + 1) - 1)
+                        try:
+                            self.exposed_client_find_node(key)
+                            break
+                        except:
+                            count += 1
+                    if count == 5:
+                        debug(f'No se puedo realizar el iterative find node')
+                self.is_started_node = True
+                return True
+            except Exception as e:
+                exception(e)
+                sleep(5)
+        return False
 
     @classmethod
     def get_name(cls) -> str:
