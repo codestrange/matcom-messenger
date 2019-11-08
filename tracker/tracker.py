@@ -37,8 +37,8 @@ class TrackerService(KademliaService):
                 sleep(10)
 
     @staticmethod
-    def get_id() -> str:
-        return get_hash(':'.join([TrackerService.get_ip()]))
+    def get_id_hash(id: str) -> int:
+        return get_hash(id)
 
     @staticmethod
     def get_ip() -> str:
