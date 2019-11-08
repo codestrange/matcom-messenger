@@ -34,9 +34,11 @@ class TrackerService(KademliaService):
         while True:
             server = None
             try:
-                debug('Starting the service')
+                debug('Creating instace of service')
                 service = TrackerService(contact, 3, 126, 3, None)
+                debug('Creating instace of ThreadedServer')
                 server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
+                debug('Starting the service')
                 server.start()
                 break
             except:
