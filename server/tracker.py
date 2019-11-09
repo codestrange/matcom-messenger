@@ -49,7 +49,7 @@ class TrackerService(KademliaService):
                 sleep(5)
 
     @staticmethod
-    def start():
+    def start(port_random=False):
         debug('Starting a thread for the registration server')
         thread_register = Thread(target=TrackerService.__start_register)
         thread_register.start()
@@ -58,8 +58,10 @@ class TrackerService(KademliaService):
         debug('Getting ip')
         ip = TrackerService.get_ip()
         debug(f'IP obtained: {ip}')
-        debug('Randomly generating port between 8000 and 9000')
-        port = randint(8000, 9000)
+        port = 8081
+        if port_random:
+            debug('Randomly generating port between 8000 and 9000')
+            port = randint(8000, 9000)
         debug(f'Randomly generated port: {port}')
         debug(f'Calculating the id of the node through its address: {ip}:{port}')
         id = TrackerService.get_id_hash(f"{ip}:{port}")
