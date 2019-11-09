@@ -100,7 +100,7 @@ class TrackerService(KademliaService):
         ip = '0.0.0.0'
         try:
             debug('Discovering nodes to establish a connection to obtain the IP')
-            peers = discover(TrackerService.ALIASES[0])
+            peers = discover(TrackerService.get_name(TrackerService))
             debug(f'Nodes discovered to obtain IP: {peers}')
             for peer in peers:
                 s = socket(AF_INET, SOCK_DGRAM)
