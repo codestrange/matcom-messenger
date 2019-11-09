@@ -10,7 +10,7 @@ from .utils import get_hash
 from .kademlia import Contact, KademliaService
 
 
-basicConfig(format='%(levelname)s - %(name)s: %(message)s', level=DEBUG)
+basicConfig(filename='system.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
 
 
 class TrackerService(KademliaService):
