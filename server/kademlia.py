@@ -168,36 +168,36 @@ class KademliaService(ProtocolService):
             try:
                 try:
                     service_name = KademliaService.get_name(self.__class__)
-                    debug(f'Server name in the connect_to_network: {service_name}')
+                    debug(f'KademliaService.exposed_connect_to_network - Server name in the connect_to_network: {service_name}')
                     nodes = discover(service_name)
-                    debug(f'Discovered nodes: {nodes}')
+                    debug(f'KademliaService.exposed_connect_to_network - Discovered nodes: {nodes}')
                 except DiscoveryError:
-                    raise Exception(f'No service found')
+                    raise Exception(f'KademliaService.exposed_connect_to_network - No service found')
                 mark = False
                 for ip, port in nodes:
                     count = 0
                     while count < 5:
                         try:
-                            debug(f'Establishing connection with {ip}:{port}')
+                            debug(f'KademliaService.exposed_connect_to_network - Establishing connection with {ip}:{port}')
                             conn = connect(ip, port)
-                            debug(f'Pinging to {ip}:{port}')
+                            debug(f'KademliaService.exposed_connect_to_network - Pinging to {ip}:{port}')
                             contact = Contact.clone(conn.root.ping())
-                            debug(f'The contact {contact} responded to the ping correctly')
+                            debug(f'KademliaService.exposed_connect_to_network - The contact {contact} responded to the ping correctly')
                             break
                         except:
                             count += 1
                     if count == 5:
-                        debug(f'The service with address {ip}: {port} does not respond')
+                        debug(f'KademliaService.exposed_connect_to_network - The service with address {ip}: {port} does not respond')
                         continue
                     if not contact == self.my_contact:
                         mark = True
                         self.table.update(contact)
                 if not mark:
-                    raise Exception('Not discover node different')
+                    raise Exception('KademliaService.exposed_connect_to_network - Not discover node different')
                 try:
                     self.exposed_client_find_node(self.my_contact.hash)
                 except Exception as e:
-                    raise Exception(f'I can\'t perform the first iterative find node because: {e}')
+                    raise Exception(f'KademliaService.exposed_connect_to_network - I can\'t perform the first iterative find node because: {e}')
                 count_of_buckets = len(self.table)
                 for i in range(count_of_buckets):
                     count = 0
@@ -209,12 +209,12 @@ class KademliaService(ProtocolService):
                         except:
                             count += 1
                     if count == 5:
-                        debug(f'I cannot perform the iterative find node')
+                        debug(f'KademliaService.exposed_connect_to_network - I cannot perform the iterative find node')
                 self.is_started_node = True
                 return True
             except Exception as e:
                 error(e)
-                debug('Sleep for 5 seconds and try to connect to the network again')
+                debug('KademliaService.exposed_connect_to_network - Sleep for 5 seconds and try to connect to the network again')
                 sleep(5)
         return False
 

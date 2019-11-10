@@ -1,4 +1,4 @@
-from logging import basicConfig, debug, error, exception, DEBUG, BASIC_FORMAT
+from logging import basicConfig, debug, error, DEBUG, BASIC_FORMAT
 from random import randint
 from threading import Thread
 from time import sleep
@@ -19,12 +19,12 @@ class TrackerService(KademliaService):
         while True:
             server = None
             try:
-                debug('Starting the registration server')
+                debug('TrackerService.__start_register - Starting the registration server')
                 server = UDPRegistryServer(pruning_timeout=DEFAULT_PRUNING_TIMEOUT)
                 server.start()
                 break
             except:
-                error('Error starting server to register, sleeping 5 seconds and trying again')
+                error('TrackerService.__start_register - Error starting server to register, sleeping 5 seconds and trying again')
                 if not server is None:
                     server.close()
                 sleep(5)
@@ -34,45 +34,45 @@ class TrackerService(KademliaService):
         while True:
             server = None
             try:
-                debug('Creating instace of service')
+                debug('TrackerService.__start_service - Creating instace of service')
                 service = TrackerService(contact, 3, 126, 3, None)
-                debug('Creating instace of ThreadedServer')
+                debug('TrackerService.__start_service - Creating instace of ThreadedServer')
                 server = ThreadedServer(service, port=contact.port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
-                debug('Starting the service')
+                debug('TrackerService.__start_service - Starting the service')
                 server.start()
                 break
             except Exception as e:
-                error('Error starting service, sleeping 5 seconds and trying again')
-                exception(e)
+                error('TrackerService.__start_service - Error starting service, sleeping 5 seconds and trying again')
+                error(e)
                 if not server is None:
                     server.close()
                 sleep(5)
 
     @staticmethod
     def start(port_random=False):
-        debug('Starting a thread for the registration server')
+        debug('TrackerService.start - Starting a thread for the registration server')
         thread_register = Thread(target=TrackerService.__start_register)
         thread_register.start()
-        debug('Sleeping 3 seconds for the server to register to start')
+        debug('TrackerService.start - Sleeping 3 seconds for the server to register to start')
         sleep(3)
-        debug('Getting ip')
+        debug('TrackerService.start - Getting ip')
         ip = TrackerService.get_ip()
-        debug(f'IP obtained: {ip}')
+        debug(f'TrackerService.start - IP obtained: {ip}')
         port = 8081
         if port_random:
-            debug('Randomly generating port between 8000 and 9000')
+            debug('TrackerService.start - Randomly generating port between 8000 and 9000')
             port = randint(8000, 9000)
-        debug(f'Randomly generated port: {port}')
-        debug(f'Calculating the id of the node through its address: {ip}:{port}')
+        debug(f'TrackerService.start - Randomly generated port: {port}')
+        debug(f'TrackerService.start - Calculating the id of the node through its address: {ip}:{port}')
         id = TrackerService.get_id_hash(f"{ip}:{port}")
-        debug(f'Id generated with the SHA1 hash function: {id}')
-        debug('Creating node contact')
+        debug(f'TrackerService.start - Id generated with the SHA1 hash function: {id}')
+        debug('TrackerService.start - Creating node contact')
         contact = Contact(id, ip, port)
-        debug(f'Generated contact: {contact}')
-        debug('Starting a thread for the service')
+        debug(f'TrackerService.start - Generated contact: {contact}')
+        debug('TrackerService.start - Starting a thread for the service')
         thread_service = Thread(target=TrackerService.__start_service, args=(contact, ))
         thread_service.start()
-        debug('Sleeping 3 seconds for the service to start')
+        debug('TrackerService.start - Sleeping 3 seconds for the service to start')
         sleep(3)
         while True:
             try:
@@ -92,29 +92,29 @@ class TrackerService(KademliaService):
 
     @staticmethod
     def get_id_hash(id: str) -> int:
-        debug(f'Calculating hash from: {id}')
+        debug(f'TrackerService.get_id_hash - Calculating hash from: {id}')
         return get_hash(id)
 
     @staticmethod
     def get_ip() -> str:
         ip = '0.0.0.0'
         try:
-            debug('Discovering nodes to establish a connection to obtain the IP')
+            debug('TrackerService.get_ip - Discovering nodes to establish a connection to obtain the IP')
             peers = discover(TrackerService.get_name(TrackerService))
-            debug(f'Nodes discovered to obtain IP: {peers}')
+            debug(f'TrackerService.get_ip - Nodes discovered to obtain IP: {peers}')
             for peer in peers:
                 s = socket(AF_INET, SOCK_DGRAM)
                 try:
-                    debug(f'Attempting to connect to the node: {peer}')
+                    debug(f'TrackerService.get_ip - Attempting to connect to the node: {peer}')
                     s.connect(peer)
                     ip = s.getsockname()[0]
                 except:
-                    error(f'Error connecting to node: {peer}')
+                    error(f'TrackerService.get_ip - Error connecting to node: {peer}')
                     sleep(3)
                     continue
                 finally:
                     s.close()
         except:
-            error('Obtaining IP from a socket locally because no node was discovered')
+            error('TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered')
             ip = gethostbyname(gethostname()) # This should never happen if 
         return ip
