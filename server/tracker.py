@@ -30,14 +30,14 @@ class TrackerService(KademliaService):
                 sleep(5)
 
     @staticmethod
-    def __start_service(contact:Contact):
+    def __start_service(port:int):
         while True:
             server = None
             try:
                 debug('TrackerService.__start_service - Creating instace of service')
-                service = TrackerService(contact, 3, 126, 3, None)
+                service = TrackerService(3, 126, 3, None)
                 debug('TrackerService.__start_service - Creating instace of ThreadedServer')
-                server = ThreadedServer(service, port=contact.port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
+                server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
                 debug('TrackerService.__start_service - Starting the service')
                 server.start()
                 break
@@ -50,30 +50,30 @@ class TrackerService(KademliaService):
 
     @staticmethod
     def start(port_random=False):
-        debug('TrackerService.start - Starting a thread for the registration server')
-        thread_register = Thread(target=TrackerService.__start_register)
-        thread_register.start()
-        debug('TrackerService.start - Sleeping 3 seconds for the server to register to start')
-        sleep(3)
-        debug('TrackerService.start - Getting ip')
-        ip = TrackerService.get_ip()
-        debug(f'TrackerService.start - IP obtained: {ip}')
         port = 8081
         if port_random:
             debug('TrackerService.start - Randomly generating port between 8000 and 9000')
             port = randint(8000, 9000)
         debug(f'TrackerService.start - Randomly generated port: {port}')
+        debug('TrackerService.start - Starting a thread for the registration server')
+        thread_register = Thread(target=TrackerService.__start_register)
+        thread_register.start()
+        debug('TrackerService.start - Sleeping 3 seconds for the server to register to start')
+        sleep(3)
+        debug('TrackerService.start - Starting a thread for the service')
+        thread_service = Thread(target=TrackerService.__start_service, args=(port, ))
+        thread_service.start()
+        debug('TrackerService.start - Sleeping 3 seconds for the service to start')
+        sleep(3)
+        debug('TrackerService.start - Getting ip')
+        ip = TrackerService.get_ip()
+        debug(f'TrackerService.start - IP obtained: {ip}')
         debug(f'TrackerService.start - Calculating the id of the node through its address: {ip}:{port}')
         id = TrackerService.get_id_hash(f"{ip}:{port}")
         debug(f'TrackerService.start - Id generated with the SHA1 hash function: {id}')
         debug('TrackerService.start - Creating node contact')
         contact = Contact(id, ip, port)
         debug(f'TrackerService.start - Generated contact: {contact}')
-        debug('TrackerService.start - Starting a thread for the service')
-        thread_service = Thread(target=TrackerService.__start_service, args=(contact, ))
-        thread_service.start()
-        debug('TrackerService.start - Sleeping 3 seconds for the service to start')
-        sleep(3)
         while True:
             try:
                 debug('Trying to connect to the service to start the JOIN')
@@ -81,7 +81,7 @@ class TrackerService(KademliaService):
                 debug('Pinging the service')
                 conn.ping()
                 debug('Executing the remote connect to network method in the service')
-                result = conn.root.connect_to_network()
+                result = conn.root.connect_to_network(contact.hash, contact.ip, contact.port)
                 if result:
                     break
                 error('Error doing JOIN, wait 5 seconds and try again')

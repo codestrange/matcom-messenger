@@ -7,16 +7,16 @@ from .utils import try_function
 
 
 class ProtocolService(Service):
-    def __init__(self, my_contact:Contact, k:int, b:int, value_cloner):
+    def __init__(self, k:int, b:int, value_cloner):
         super(ProtocolService, self).__init__()
         self.data = {}
         self.lamport = 0
         self.lamport_lock = Semaphore()
-        self.my_contact = Contact.clone(my_contact)
-        self.table = BucketTable(k, b, my_contact.hash)
         self.value_cloner = value_cloner
         self.k = k
         self.b = b
+        self.is_initialized = False
+        self.is_initialized_lock = Semaphore()
 
     def on_connect(self, conn:Connection):
         pass
@@ -24,7 +24,23 @@ class ProtocolService(Service):
     def on_disconnect(self, conn:Connection):
         pass
 
+    def exposed_init(self, contact:Contact):
+        self.is_initialized_lock.acquire()
+        if self.is_initialized:
+            self.is_initialized_lock.release()
+            return True
+        self.my_contact = Contact.clone(contact)
+        self.table = BucketTable(self.k, self.b, self.my_contact.hash)
+        self.is_initialized = True
+        self.is_initialized_lock.release()
+        return True
+
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return False
+        self.is_initialized_lock.release()
         client = Contact.clone(client)
         value = self.value_cloner(value)
         self.update_lamport(client_lamport)
@@ -37,18 +53,33 @@ class ProtocolService(Service):
         return True
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         client = Contact.clone(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         return self.my_contact
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         client = Contact.clone(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         return self.table.get_bucket(id).nodes
 
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         client = Contact.clone(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)

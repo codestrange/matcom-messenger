@@ -12,8 +12,8 @@ from .utils import KContactSortedArray, ThreadManager, try_function
 
 
 class KademliaService(ProtocolService):
-    def __init__(self, my_contact:Contact, k: int, b:int, a:int, value_cloner):
-        super(KademliaService, self).__init__(my_contact, k, b, value_cloner)
+    def __init__(self, k: int, b:int, a:int, value_cloner):
+        super(KademliaService, self).__init__(k, b, value_cloner)
         self.a = a
         self.is_started_node = False
 
@@ -24,6 +24,11 @@ class KademliaService(ProtocolService):
         pass
 
     def exposed_client_store(self, key:int, value:object) -> bool:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         value = self.value_cloner(value)
         queue = Queue()
         visited = set()
@@ -68,6 +73,11 @@ class KademliaService(ProtocolService):
                 queue_lock.release()
 
     def exposed_client_find_node(self, id:int) -> list:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         queue = Queue()
         visited = set()
         top_contacts = KContactSortedArray(self.k, id)
@@ -95,7 +105,7 @@ class KademliaService(ProtocolService):
         if not result:
             return
         self.table.update(contact)
-        new_contacts = map(Contact.clone, new_contacts) 
+        new_contacts = map(Contact.clone, new_contacts)
         for new_contact in new_contacts:
             if not self.ping(new_contact)[0]:
                 continue
@@ -110,6 +120,11 @@ class KademliaService(ProtocolService):
                 queue_lock.release()
 
     def exposed_client_find_value(self, key:int) -> object:
+        self.is_initialized_lock.acquire()
+        if not self.is_initialized:
+            self.is_initialized_lock.release()
+            return None
+        self.is_initialized_lock.release()
         queue = Queue()
         visited = set()
         top_contacts = KContactSortedArray(self.k, key)
@@ -163,9 +178,15 @@ class KademliaService(ProtocolService):
             else:
                 queue_lock.release()
 
-    def exposed_connect_to_network(self):
+    def exposed_connect_to_network(self, hash:int, ip:str, port:int):
+        contact = Contact(hash, ip, port)
+        self.exposed_init(contact)
         while not self.is_started_node:
             try:
+                self.is_initialized_lock.acquire()
+                if not self.is_initialized:
+                    self.is_initialized_lock.release()
+                self.is_initialized_lock.release()
                 try:
                     service_name = KademliaService.get_name(self.__class__)
                     debug(f'KademliaService.exposed_connect_to_network - Server name in the connect_to_network: {service_name}')
