@@ -34,7 +34,7 @@ class BucketTable:
     def get_closest_buckets(self, id:int) -> list:
         debug(f'BucketTable.get_closest_buckets - Starting method with id: {id}')
         index = self.get_bucket_index(id)
-        debug(f'Index of bucket of id: {id} is {index}')
+        debug(f'BucketTable.get_closest_buckets - Index of bucket of id: {id} is {index}')
         left = self.buckets[:index]
         center = self.buckets[index]
         right = self.buckets[index+1:]
@@ -67,6 +67,7 @@ class BucketTable:
                 yield contact
             right[rindex].semaphore.acquire()
             rindex += 1
+        debug(f'BucketTable.get_closest_buckets - Finish the method')
 
     def __iter__(self):
         return iter(self.buckets)
