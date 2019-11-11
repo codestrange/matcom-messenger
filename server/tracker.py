@@ -84,7 +84,8 @@ class TrackerService(KademliaService):
                     break
                 error('Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
-            except:
+            except Exception as e:
+                error(f'Exception: {e}')
                 error('Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
 

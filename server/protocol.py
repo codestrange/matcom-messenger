@@ -57,7 +57,7 @@ class ProtocolService(Service):
         client = Contact.from_json(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
-        return self.my_contact
+        return self.my_contact.to_json()
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
         if not self.is_initialized:
