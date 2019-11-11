@@ -68,10 +68,10 @@ class ProtocolService(Service):
         self.update_contact(client)
         result = []
         count = []
-        for contact in self.table.get_closest_buckets(id):
+        for contact in list(self.table.get_closest_buckets(id)):
             result.append(contact)
             count += 1
-            if count >= k:
+            if count >= self.k:
                 break
         return result
 

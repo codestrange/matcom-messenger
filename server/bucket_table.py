@@ -52,7 +52,7 @@ class BucketTable:
             right[rindex].semaphore.acquire()
             for contact in right[rindex]:
                 yield contact
-            right[rindex].semaphore.acquire()
+            right[rindex].semaphore.release()
             lindex -= 1
             rindex += 1
         while lindex >= 0:
@@ -65,7 +65,7 @@ class BucketTable:
             right[rindex].semaphore.acquire()
             for contact in right[rindex]:
                 yield contact
-            right[rindex].semaphore.acquire()
+            right[rindex].semaphore.release()
             rindex += 1
         debug(f'BucketTable.get_closest_buckets - Finish the method')
 
