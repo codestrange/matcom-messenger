@@ -71,3 +71,6 @@ class BucketTable:
 
     def __iter__(self):
         return iter(self.buckets)
+
+    def __len__(self):
+        return len(self.buckets)
