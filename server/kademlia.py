@@ -215,6 +215,8 @@ class KademliaService(ProtocolService):
                     raise Exception(f'KademliaService.exposed_connect_to_network - No service found')
                 mark = False
                 for ip, port in nodes:
+                    if ip == self.my_contact.ip and port == self.my_contact.port:
+                        continue
                     count = 0
                     while count < 5:
                         try:
