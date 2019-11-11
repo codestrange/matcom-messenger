@@ -88,7 +88,7 @@ class KademliaService(ProtocolService):
             queue.put(contact)
             debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the visited nodes set')
             visited.add(contact)
-            debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the KCLosesNode array')
+            debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the KClosesNode array')
             top_contacts.push(contact)
             if queue.qsize() >= self.a:
                 debug('KademliaService.exposed_client_find_node -  Initial alpha nodes completed')

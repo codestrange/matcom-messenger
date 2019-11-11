@@ -55,7 +55,7 @@ class KContactSortedArray:
         self.semaphore.acquire()
         difference = self.reference ^ contact.id
         index = bisect_left([d for d, _ in self.values], difference)
-        if self.values[index][0] != difference:
+        if not self.values or self.values[index][0] != difference:
             self.values.insert(index, (difference, contact))
             while len(self.values) > self.k:
                 self.values.pop()
