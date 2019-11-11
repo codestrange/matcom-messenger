@@ -14,7 +14,10 @@ class Contact:
         return self.id == contact.id and self.ip == contact.ip and self.port == contact.port
 
     def __repr__(self):
-        return f"<{self.id}, {self.ip}, {self.port}>"
+        return f'<{self.id}, {self.ip}, {self.port}>'
+
+    def __hash__(self):
+        return self.id
 
     def to_json(self):
         return dumps({
