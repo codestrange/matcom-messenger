@@ -67,7 +67,7 @@ class ProtocolService(Service):
         self.update_lamport(client_lamport)
         self.update_contact(client)
         result = []
-        count = []
+        count = 0
         for contact in list(self.table.get_closest_buckets(id)):
             result.append(contact)
             count += 1
