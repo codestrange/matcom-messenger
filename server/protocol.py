@@ -69,7 +69,7 @@ class ProtocolService(Service):
         result = []
         count = 0
         for contact in list(self.table.get_closest_buckets(id)):
-            result.append(contact)
+            result.append(contact.to_json())
             count += 1
             if count >= self.k:
                 break
