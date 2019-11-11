@@ -226,7 +226,8 @@ class KademliaService(ProtocolService):
                             contact = Contact.from_json(conn.root.ping(self.my_contact.to_json(), self.lamport))
                             debug(f'KademliaService.exposed_connect_to_network - The contact {contact} responded to the ping correctly')
                             break
-                        except:
+                        except Exception as e:
+                            error(f'Exception: {e} when trying ping to node with ip: {ip} and port: {port}')
                             count += 1
                     if count == 5:
                         debug(f'KademliaService.exposed_connect_to_network - The service with address {ip}: {port} does not respond')
