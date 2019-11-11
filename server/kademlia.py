@@ -45,7 +45,7 @@ class KademliaService(ProtocolService):
         manager.start()
         success = False
         for contact in top_contacts:
-            result, _ = self.store(contact, key, value, self.lamport)
+            result, _ = self.store_to(contact, key, value, self.lamport)
             success = success or result
         return success
 
@@ -55,13 +55,13 @@ class KademliaService(ProtocolService):
             contact = queue.get(timeout=1)
         except Empty:
             return
-        result, new_contacts = self.find_node(contact, key)
+        result, new_contacts = self.find_node_to(contact, key)
         if not result:
             return
         self.table.update(contact)
         new_contacts = map(Contact.clone, new_contacts)
         for new_contact in new_contacts:
-            if not self.ping(new_contact)[0]:
+            if not self.ping_to(new_contact)[0]:
                 continue
             self.table.update(new_contact)
             queue_lock.acquire()
@@ -119,7 +119,7 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.find_node_lookup - Empty queue')
             return
         debug(f'KademliaService.find_node_lookup - Make the find_node on the contact: {contact}')
-        result, new_contacts = self.find_node(contact, id)
+        result, new_contacts = self.find_node_to(contact, id)
         if not result:
             debug(f'KademliaService.find_node_lookup - No connection to the node: {contact} was established')
             return
@@ -130,7 +130,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.find_node_lookup - Iterate by contacts')
         for new_contact in new_contacts:
             debug(f'KademliaService.find_node_lookup - Pinging to contact: {new_contact}')
-            if not self.ping(new_contact)[0]:
+            if not self.ping_to(new_contact)[0]:
                 debug(f'KademliaService.find_node_lookup - The contact: {new_contact} not respond')
                 continue
             debug(f'KademliaService.find_node_lookup - Update the table with contact: {new_contact}')
@@ -173,7 +173,7 @@ class KademliaService(ProtocolService):
         if value is None:
             return None
         for contact in top_contacts:
-            self.store(contact, key, value, time)
+            self.store_to(contact, key, value, time)
         return value
 
     def find_value_lookup(self, key:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore, last_value:object, last_value_lock:Semaphore):
@@ -182,10 +182,10 @@ class KademliaService(ProtocolService):
             contact = queue.get(timeout=1)
         except Empty:
             return
-        result, new_contacts = self.find_node(contact, key)
+        result, new_contacts = self.find_node_to(contact, key)
         if not result:
             return
-        result, (value, time) = self.find_value(contact, key)
+        result, (value, time) = self.find_value_to(contact, key)
         if not result:
             return
         self.table.update(contact)
@@ -196,7 +196,7 @@ class KademliaService(ProtocolService):
             last_value = (value, time)
         last_value_lock.release()
         for new_contact in new_contacts:
-            if not self.ping(new_contact)[0]:
+            if not self.ping_to(new_contact)[0]:
                 continue
             self.table.update(new_contact)
             queue_lock.acquire()

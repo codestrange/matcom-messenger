@@ -102,7 +102,7 @@ class ProtocolService(Service):
             to_remove = None
             bucket.semaphore.acquire()
             for stored in bucket:
-                if not self.ping(stored.ip, stored.port)[0]:
+                if not self.ping_to(stored.ip, stored.port)[0]:
                     to_remove = stored
             if to_remove:
                 bucket.remove_by_contact(to_remove)
@@ -121,21 +121,21 @@ class ProtocolService(Service):
         return connection
 
     @try_function()
-    def ping(self, contact:Contact) -> bool:
+    def ping_to(self, contact:Contact) -> bool:
         connection = self.connect(contact)
         return connection.root.ping(self.my_contact, self.lamport)
 
     @try_function()
-    def store(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
+    def store_to(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
         connection = self.connect(contact)
         return connection.root.store(self.my_contact, self.lamport, key, value, store_time)
 
     @try_function()
-    def find_node(self, contact:Contact, id:int) -> list:
+    def find_node_to(self, contact:Contact, id:int) -> list:
         connection = self.connect(contact)
         return connection.root.find_node(self.my_contact, self.lamport, id)
 
     @try_function()
-    def find_value(self, contact:Contact, key:int) -> object:
+    def find_value_to(self, contact:Contact, key:int) -> object:
         connection = self.connect(contact)
         return connection.root.find_value(self.my_contact, self.lamport, key)
