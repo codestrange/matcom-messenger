@@ -26,6 +26,7 @@ class KademliaService(ProtocolService):
     def exposed_client_store(self, key:int, value:object) -> bool:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'KademliaService.exposed_client_store - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
@@ -75,19 +76,29 @@ class KademliaService(ProtocolService):
     def exposed_client_find_node(self, id:int) -> list:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'KademliaService.exposed_client_find_node - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
+        debug('KademliaService.exposed_client_find_node - Starting the queue')
         queue = Queue()
+        debug('KademliaService.exposed_client_find_node - Starting the visited nodes set')
         visited = set()
+        debug('KademliaService.exposed_client_find_node - Starting the KClosesNode array')
         top_contacts = KContactSortedArray(self.k, id)
+        debug('KademliaService.exposed_client_find_node - Starting the samaphore for the queue')
         queue_lock = Semaphore()
+        debug(f'KademliaService.exposed_client_find_node - Starting the iteration on contacts more closes to id: {id}')
         for contact in self.table.get_closest_buckets(id):
+            debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the queue')
             queue.put(contact)
+            debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the visited nodes set')
             visited.add(contact)
+            debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the KCLosesNode array')
             top_contacts.push(contact)
             if queue.qsize() >= self.a:
                 break
+        debug('KademliaService.exposed_client_find_node - Starting the ThreadManager')
         manager = ThreadManager(self.a, queue.qsize, self.find_node_lookup, args=(id, queue, top_contacts, visited, queue_lock))
         manager.start()
         for contact in top_contacts:
@@ -100,16 +111,23 @@ class KademliaService(ProtocolService):
         try:
             contact = queue.get(timeout=1)
         except Empty:
+            debug(f'KademliaService.find_node_lookup - Empty queue')
             return
         result, new_contacts = self.find_node(contact, id)
         if not result:
             return
+        debug(f'KademliaService.find_node_lookup - Update the table with contact: {contact}')
         self.table.update(contact)
         new_contacts = map(Contact.clone, new_contacts)
+        debug(f'KademliaService.find_node_lookup - Iterate by contacts')
         for new_contact in new_contacts:
+            debug(f'KademliaService.find_node_lookup - Pinging to contact: {new_contact}')
             if not self.ping(new_contact)[0]:
+                debug(f'KademliaService.find_node_lookup - The contact: {new_contact} not respond')
                 continue
+            debug(f'KademliaService.find_node_lookup - Update the table with contact: {new_contact}')
             self.table.update(new_contact)
+            debug(f'KademliaService.find_node_lookup - Lock the queue')
             queue_lock.acquire()
             if not new_contact in visited:
                 visited.add(new_contact)
@@ -122,6 +140,7 @@ class KademliaService(ProtocolService):
     def exposed_client_find_value(self, key:int) -> object:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'KademliaService.exposed_client_find_value - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
@@ -185,6 +204,7 @@ class KademliaService(ProtocolService):
             try:
                 self.is_initialized_lock.acquire()
                 if not self.is_initialized:
+                    raise Exception(f'KademliaService.exposed_connect_to_network - Instance not initialized')
                     self.is_initialized_lock.release()
                 self.is_initialized_lock.release()
                 try:
