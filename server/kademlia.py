@@ -24,12 +24,9 @@ class KademliaService(ProtocolService):
         pass
 
     def exposed_client_store(self, key:int, value:object) -> bool:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_store - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
         value = self.value_cloner(value)
         queue = Queue()
         visited = set()
@@ -59,7 +56,7 @@ class KademliaService(ProtocolService):
         if not result:
             return
         self.table.update(contact)
-        new_contacts = map(Contact.clone, new_contacts)
+        new_contacts = map(Contact.from_json, new_contacts)
         for new_contact in new_contacts:
             if not self.ping_to(new_contact)[0]:
                 continue
@@ -74,12 +71,9 @@ class KademliaService(ProtocolService):
                 queue_lock.release()
 
     def exposed_client_find_node(self, id:int) -> list:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_find_node - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
         debug('KademliaService.exposed_client_find_node - Starting the queue')
         queue = Queue()
         debug('KademliaService.exposed_client_find_node - Starting the visited nodes set')
@@ -106,7 +100,7 @@ class KademliaService(ProtocolService):
         for contact in top_contacts:
             if contact.id == id:
                 debug(f'KademliaService.exposed_client_find_node - The node with id was found: {id}, the node is {contact}')
-                return contact
+                return contact.to_json()
         return None
 
     def find_node_lookup(self, id:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
@@ -126,7 +120,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.find_node_lookup - Update the table with contact: {contact}')
         self.table.update(contact)
         debug(f'KademliaService.find_node_lookup - Cloning contacts received')
-        new_contacts = map(Contact.clone, new_contacts)
+        new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.find_node_lookup - Iterate by contacts')
         for new_contact in new_contacts:
             debug(f'KademliaService.find_node_lookup - Pinging to contact: {new_contact}')
@@ -149,12 +143,9 @@ class KademliaService(ProtocolService):
                 queue_lock.release()
 
     def exposed_client_find_value(self, key:int) -> object:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_find_value - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
         queue = Queue()
         visited = set()
         top_contacts = KContactSortedArray(self.k, key)
@@ -190,7 +181,7 @@ class KademliaService(ProtocolService):
             return
         self.table.update(contact)
         value = self.value_cloner(value)
-        new_contacts = map(Contact.clone, new_contacts)
+        new_contacts = map(Contact.from_json, new_contacts)
         last_value_lock.acquire()
         if time > last_value[1]:
             last_value = (value, time)
@@ -208,16 +199,13 @@ class KademliaService(ProtocolService):
             else:
                 queue_lock.release()
 
-    def exposed_connect_to_network(self, id:int, ip:str, port:int):
-        contact = Contact(id, ip, port)
+    def exposed_connect_to_network(self, contact:str):
         self.exposed_init(contact)
+        contact = Contact.from_json(contact)
         while not self.is_started_node:
             try:
-                self.is_initialized_lock.acquire()
                 if not self.is_initialized:
                     raise Exception(f'KademliaService.exposed_connect_to_network - Instance not initialized')
-                    self.is_initialized_lock.release()
-                self.is_initialized_lock.release()
                 try:
                     service_name = KademliaService.get_name(self.__class__)
                     debug(f'KademliaService.exposed_connect_to_network - Server name in the connect_to_network: {service_name}')
@@ -233,7 +221,7 @@ class KademliaService(ProtocolService):
                             debug(f'KademliaService.exposed_connect_to_network - Establishing connection with {ip}:{port}')
                             conn = connect(ip, port)
                             debug(f'KademliaService.exposed_connect_to_network - Pinging to {ip}:{port}')
-                            contact = Contact.clone(conn.root.ping())
+                            contact = Contact.from_json(conn.root.ping(self.my_contact.to_json(), self.lamport))
                             debug(f'KademliaService.exposed_connect_to_network - The contact {contact} responded to the ping correctly')
                             break
                         except:

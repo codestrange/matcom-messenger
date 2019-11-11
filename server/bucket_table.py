@@ -14,9 +14,9 @@ class BucketTable:
 
     def get_bucket(self, id:int) -> Bucket:
         index = self.get_bucket_index(id)
-        self.buckets[index].acquire()
+        self.buckets[index].semaphore.acquire()
         result = self.buckets[index]
-        self.buckets[index].release()
+        self.buckets[index].semaphore.release()
         return result
 
     def get_bucket_index(self, id:int) -> int:

@@ -71,6 +71,7 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.start - Calculating the id of the node through its address: {ip}:{port}')
         hash_id = TrackerService.get_id_hash(f"{ip}:{port}")
         debug(f'TrackerService.start - Id generated with the SHA1 hash function: {hash_id}')
+        contact = Contact(hash_id, ip, port)
         while True:
             try:
                 debug('Trying to connect to the service to start the JOIN')
@@ -78,7 +79,7 @@ class TrackerService(KademliaService):
                 debug('Pinging the service')
                 conn.ping()
                 debug('Executing the remote connect to network method in the service')
-                result = conn.root.connect_to_network(hash_id, ip, port)
+                result = conn.root.connect_to_network(contact.to_json())
                 if result:
                     break
                 error('Error doing JOIN, wait 5 seconds and try again')

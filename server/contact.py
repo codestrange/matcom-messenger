@@ -1,3 +1,6 @@
+from json import dumps, loads
+
+
 class Contact:
     def __init__(self, id:int=None, ip:str=None, port:int=None):
         self.id = id
@@ -12,3 +15,15 @@ class Contact:
 
     def __repr__(self):
         return f"<{self.id}, {self.ip}, {self.port}>"
+
+    def to_json(self):
+        return dumps({
+            'id': self.id,
+            'ip': self.ip,
+            'port': self.port
+        })
+
+    @staticmethod
+    def from_json(contact):
+        contact = loads(contact)
+        return Contact(contact['id'], contact['ip'], contact['port'])

@@ -27,25 +27,19 @@ class ProtocolService(Service):
         pass
 
     def exposed_init(self, contact:Contact):
-        self.is_initialized_lock.acquire()
         if self.is_initialized:
-            self.is_initialized_lock.release()
             return True
-        self.my_contact = Contact.clone(contact)
+        self.my_contact = Contact.from_json(contact)
         debug(f'ProtocolService.exposed_init - Executing the init with the contact: {self.my_contact}')
         self.table = BucketTable(self.k, self.b, self.my_contact.id)
         self.is_initialized = True
-        self.is_initialized_lock.release()
         return True
 
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'ProtocolService.exposed_store - Instance not initialized')
-            self.is_initialized_lock.release()
             return False
-        self.is_initialized_lock.release()
-        client = Contact.clone(client)
+        client = Contact.from_json(client)
         value = self.value_cloner(value)
         self.update_lamport(client_lamport)
         self.update_contact(client)
@@ -57,37 +51,28 @@ class ProtocolService(Service):
         return True
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'ProtocolService.exposed_ping - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
-        client = Contact.clone(client)
+        client = Contact.from_json(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         return self.my_contact
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_node - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
-        client = Contact.clone(client)
+        client = Contact.from_json(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         return self.table.get_bucket(id).nodes
 
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
-        self.is_initialized_lock.acquire()
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_value - Instance not initialized')
-            self.is_initialized_lock.release()
             return None
-        self.is_initialized_lock.release()
-        client = Contact.clone(client)
+        client = Contact.from_json(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         try:
@@ -123,19 +108,19 @@ class ProtocolService(Service):
     @try_function()
     def ping_to(self, contact:Contact) -> bool:
         connection = self.connect(contact)
-        return connection.root.ping(self.my_contact, self.lamport)
+        return connection.root.ping(self.my_contact.to_json(), self.lamport)
 
     @try_function()
     def store_to(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
         connection = self.connect(contact)
-        return connection.root.store(self.my_contact, self.lamport, key, value, store_time)
+        return connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
 
     @try_function()
     def find_node_to(self, contact:Contact, id:int) -> list:
         connection = self.connect(contact)
-        return connection.root.find_node(self.my_contact, self.lamport, id)
+        return connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
 
     @try_function()
     def find_value_to(self, contact:Contact, key:int) -> object:
         connection = self.connect(contact)
-        return connection.root.find_value(self.my_contact, self.lamport, key)
+        return connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
