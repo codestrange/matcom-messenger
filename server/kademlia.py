@@ -84,7 +84,7 @@ class KademliaService(ProtocolService):
         queue = Queue()
         debug('KademliaService.exposed_client_find_node - Starting the visited nodes set')
         visited = set()
-        debug('KademliaService.exposed_client_find_node - Starting the KClosesNode array')
+        debug('KademliaService.exposed_client_find_node - Starting the KClosestNode array')
         top_contacts = KContactSortedArray(self.k, id)
         debug('KademliaService.exposed_client_find_node - Starting the samaphore for the queue')
         queue_lock = Semaphore()
@@ -97,27 +97,35 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.exposed_client_find_node - Insert the contact: {contact} to the KCLosesNode array')
             top_contacts.push(contact)
             if queue.qsize() >= self.a:
+                debug('KademliaService.exposed_client_find_node -  Initial alpha nodes completed')
                 break
         debug('KademliaService.exposed_client_find_node - Starting the ThreadManager')
         manager = ThreadManager(self.a, queue.qsize, self.find_node_lookup, args=(id, queue, top_contacts, visited, queue_lock))
         manager.start()
+        debug(f'KademliaService.exposed_client_find_node - Iterate the closest K nodes to find the node {id}')
         for contact in top_contacts:
             if contact.hash == id:
+                debug(f'KademliaService.exposed_client_find_node - The node with id was found: {id}, the node is {contact}')
                 return contact
         return None
 
     def find_node_lookup(self, id:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
         contact = None
         try:
+            debug(f'KademliaService.find_node_lookup - Removing a contact from the queue')
             contact = queue.get(timeout=1)
+            debug(f'KademliaService.find_node_lookup - Contact {contact} out of the queue')
         except Empty:
             debug(f'KademliaService.find_node_lookup - Empty queue')
             return
+        debug(f'KademliaService.find_node_lookup - Make the find_node on the contact: {contact}')
         result, new_contacts = self.find_node(contact, id)
         if not result:
+            debug(f'KademliaService.find_node_lookup - No connection to the node: {contact} was established')
             return
         debug(f'KademliaService.find_node_lookup - Update the table with contact: {contact}')
         self.table.update(contact)
+        debug(f'KademliaService.find_node_lookup - Cloning contacts received')
         new_contacts = map(Contact.clone, new_contacts)
         debug(f'KademliaService.find_node_lookup - Iterate by contacts')
         for new_contact in new_contacts:
@@ -130,11 +138,14 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.find_node_lookup - Lock the queue')
             queue_lock.acquire()
             if not new_contact in visited:
+                debug(f'KademliaService.find_node_lookup - The contact: {new_contact} is NOT in the queue')
+                debug(f'KademliaService.find_node_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
                 queue_lock.release()
                 queue.put(new_contact)
                 top.push(new_contact)
             else:
+                debug(f'KademliaService.find_node_lookup - The contact: {new_contact} is in the queue')
                 queue_lock.release()
 
     def exposed_client_find_value(self, key:int) -> object:
