@@ -80,7 +80,7 @@ class KademliaService(ProtocolService):
         visited = set()
         debug('KademliaService.exposed_client_find_node - Starting the KClosestNode array')
         top_contacts = KContactSortedArray(self.k, id)
-        debug('KademliaService.exposed_client_find_node - Starting the samaphore for the queue')
+        debug('KademliaService.exposed_client_find_node - Starting the semaphore for the queue')
         queue_lock = Semaphore()
         debug(f'KademliaService.exposed_client_find_node - Starting the iteration on contacts more closes to id: {id}')
         for contact in self.table.get_closest_buckets(id):
