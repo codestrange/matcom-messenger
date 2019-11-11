@@ -104,7 +104,7 @@ class KademliaService(ProtocolService):
         manager.start()
         debug(f'KademliaService.exposed_client_find_node - Iterate the closest K nodes to find the node {id}')
         for contact in top_contacts:
-            if contact.hash == id:
+            if contact.id == id:
                 debug(f'KademliaService.exposed_client_find_node - The node with id was found: {id}, the node is {contact}')
                 return contact
         return None
@@ -208,8 +208,8 @@ class KademliaService(ProtocolService):
             else:
                 queue_lock.release()
 
-    def exposed_connect_to_network(self, hash:int, ip:str, port:int):
-        contact = Contact(hash, ip, port)
+    def exposed_connect_to_network(self, id:int, ip:str, port:int):
+        contact = Contact(id, ip, port)
         self.exposed_init(contact)
         while not self.is_started_node:
             try:
@@ -247,7 +247,7 @@ class KademliaService(ProtocolService):
                 if not mark:
                     raise Exception('KademliaService.exposed_connect_to_network - Not discover node different')
                 try:
-                    self.exposed_client_find_node(self.my_contact.hash)
+                    self.exposed_client_find_node(self.my_contact.id)
                 except Exception as e:
                     raise Exception(f'KademliaService.exposed_connect_to_network - I can\'t perform the first iterative find node because: {e}')
                 count_of_buckets = len(self.table)

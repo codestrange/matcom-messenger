@@ -33,7 +33,7 @@ class ProtocolService(Service):
             return True
         self.my_contact = Contact.clone(contact)
         debug(f'ProtocolService.exposed_init - Executing the init with the contact: {self.my_contact}')
-        self.table = BucketTable(self.k, self.b, self.my_contact.hash)
+        self.table = BucketTable(self.k, self.b, self.my_contact.id)
         self.is_initialized = True
         self.is_initialized_lock.release()
         return True
@@ -98,7 +98,7 @@ class ProtocolService(Service):
 
     def update_contact(self, contact:Contact):
         if not self.table.update(contact):
-            bucket = self.table.get_bucket(contact.hash)
+            bucket = self.table.get_bucket(contact.id)
             to_remove = None
             bucket.semaphore.acquire()
             for stored in bucket:

@@ -4,35 +4,35 @@ from .contact import Contact
 
 
 class BucketTable:
-    def __init__(self, k:int, b:int, hash:int):
+    def __init__(self, k:int, b:int, id:int):
         self.k = k
         self.b = b
-        self.hash = hash
+        self.id = id
         self.buckets = []
         for _ in range(b):
             self.buckets.append(Bucket(self.k))
 
-    def get_bucket(self, hash:int) -> Bucket:
-        index = self.get_bucket_index(hash)
+    def get_bucket(self, id:int) -> Bucket:
+        index = self.get_bucket_index(id)
         self.buckets[index].acquire()
         result = self.buckets[index]
         self.buckets[index].release()
         return result
 
-    def get_bucket_index(self, hash:int) -> int:
-        distance = self.hash ^ hash
-        debug(f'Distance between {self.hash} and {hash} = {distance}')
+    def get_bucket_index(self, id:int) -> int:
+        distance = self.id ^ id
+        debug(f'Distance between {self.id} and {id} = {distance}')
         return max([i for i in range(self.b) if distance & (1<<i) > 0])
 
     def update(self, contact:Contact) -> bool:
-        bucket = self.get_bucket(contact.hash)
+        bucket = self.get_bucket(contact.id)
         bucket.semaphore.acquire()
         result = bucket.update(contact)
         bucket.semaphore.release()
         return result
 
-    def get_closest_buckets(self, hash:int) -> list:
-        index = self.get_bucket_index(hash)
+    def get_closest_buckets(self, id:int) -> list:
+        index = self.get_bucket_index(id)
         left = self.buckets[:index]
         center = self.buckets[index]
         right = self.buckets[index+1:]

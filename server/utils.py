@@ -53,7 +53,7 @@ class KContactSortedArray:
 
     def push(self, contact:Contact) -> bool:
         self.semaphore.acquire()
-        difference = self.reference ^ contact.hash
+        difference = self.reference ^ contact.id
         index = bisect_left([d for d, _ in self.values], difference)
         if self.values[index][0] != difference:
             self.values.insert(index, (difference, contact))
