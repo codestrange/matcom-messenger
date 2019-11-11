@@ -1,3 +1,4 @@
+from logging import debug, error
 from threading import Semaphore
 from rpyc import connect, Connection, Service
 from .bucket import Bucket
@@ -9,6 +10,7 @@ from .utils import try_function
 class ProtocolService(Service):
     def __init__(self, k:int, b:int, value_cloner):
         super(ProtocolService, self).__init__()
+        debug(f'ProtocolService.__init__ - Executing the constructor with k: {k} y b: {b}')
         self.data = {}
         self.lamport = 0
         self.lamport_lock = Semaphore()
@@ -30,6 +32,7 @@ class ProtocolService(Service):
             self.is_initialized_lock.release()
             return True
         self.my_contact = Contact.clone(contact)
+        debug(f'ProtocolService.exposed_init - Executing the init with the contact: {self.my_contact}')
         self.table = BucketTable(self.k, self.b, self.my_contact.hash)
         self.is_initialized = True
         self.is_initialized_lock.release()
@@ -38,6 +41,7 @@ class ProtocolService(Service):
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'ProtocolService.exposed_store - Instance not initialized')
             self.is_initialized_lock.release()
             return False
         self.is_initialized_lock.release()
@@ -55,6 +59,7 @@ class ProtocolService(Service):
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'ProtocolService.exposed_ping - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
@@ -66,6 +71,7 @@ class ProtocolService(Service):
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'ProtocolService.exposed_find_node - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
@@ -77,6 +83,7 @@ class ProtocolService(Service):
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
         self.is_initialized_lock.acquire()
         if not self.is_initialized:
+            error(f'ProtocolService.exposed_find_value - Instance not initialized')
             self.is_initialized_lock.release()
             return None
         self.is_initialized_lock.release()
