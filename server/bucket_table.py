@@ -22,7 +22,7 @@ class BucketTable:
     def get_bucket_index(self, id:int) -> int:
         distance = self.id ^ id
         debug(f'Distance between {self.id} and {id} = {distance}')
-        return max([i for i in range(self.b) if distance & (1<<i) > 0])
+        return max([i for i in range(self.b) if distance & (1<<i) > 0], default=0)
 
     def update(self, contact:Contact) -> bool:
         bucket = self.get_bucket(contact.id)

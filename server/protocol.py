@@ -66,7 +66,14 @@ class ProtocolService(Service):
         client = Contact.from_json(client)
         self.update_lamport(client_lamport)
         self.update_contact(client)
-        return self.table.get_bucket(id).nodes
+        result = []
+        count = []
+        for contact in self.table.get_closest_buckets(id):
+            result.append(contact)
+            count += 1
+            if count >= k:
+                break
+        return result
 
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
         if not self.is_initialized:
