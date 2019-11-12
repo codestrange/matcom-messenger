@@ -75,7 +75,7 @@ class TrackerService(KademliaService):
         while True:
             try:
                 debug('TrackerService.start - Trying to connect to the service to start the JOIN')
-                conn = connect(ip, port)
+                conn = connect(ip, port, config={'sync_request_timeout': 1000000})
                 debug('TrackerService.start - Pinging the service')
                 conn.ping()
                 debug('TrackerService.start - Executing the remote connect to network method in the service')
