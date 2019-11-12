@@ -27,19 +27,19 @@ class ProtocolService(Service):
         pass
 
     def exposed_init(self, contact:Contact):
-        debug(f'exposed_init - Incoming connection from {Contact.from_json(contact)}.')
+        debug(f'ProtocolService.exposed_init - Incoming connection from {Contact.from_json(contact)}.')
         if self.is_initialized:
             return True
         self.my_contact = Contact.from_json(contact)
         debug(f'ProtocolService.exposed_init - Executing the init with the contact: {self.my_contact}')
         self.table = BucketTable(self.k, self.b, self.my_contact.id)
         self.is_initialized = True
-        debug(f'exposed_init - End of connection from {Contact.from_json(contact)}.')
+        debug(f'ProtocolService.exposed_init - End of connection from {Contact.from_json(contact)}.')
         return True
 
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
-        debug(f'exposed_store - Incoming connection from {Contact.from_json(client)}.')
-        debug(f'exposed_store - Trying to store value in key: {key} at time: {store_time}.')
+        debug(f'ProtocolService.exposed_store - Incoming connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_store - Instance not initialized')
             return False
@@ -56,7 +56,7 @@ class ProtocolService(Service):
         return True
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
-        debug(f'exposed_ping - Incoming connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_ping - Incoming connection from {Contact.from_json(client)}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_ping - Instance not initialized')
             return None
@@ -67,7 +67,7 @@ class ProtocolService(Service):
         return self.my_contact.to_json()
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:
-        debug(f'exposed_find_node - Incoming connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_find_node - Incoming connection from {Contact.from_json(client)}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_node - Instance not initialized')
             return None
@@ -81,13 +81,13 @@ class ProtocolService(Service):
             count += 1
             if count >= self.k:
                 break
-        debug(f'exposed_find_node - Replaying with {result}.')
-        debug(f'exposed_find_node - End of connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_find_node - Replaying with {result}.')
+        debug(f'ProtocolService.exposed_find_node - End of connection from {Contact.from_json(client)}.')
         return result
 
     def exposed_find_value(self, client:Contact, client_lamport:int, key:int) -> object:
-        debug(f'exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
-        debug(f'exposed_find_value - Asking for key: {key}.')
+        debug(f'ProtocolService.exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_find_value - Asking for key: {key}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_value - Instance not initialized')
             return None
@@ -96,16 +96,16 @@ class ProtocolService(Service):
         self.update_contact(client)
         try:
             value, stored_time = self.data[key]
-            debug(f'exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
-            debug(f'exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
+            debug(f'ProtocolService.exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
+            debug(f'ProtocolService.exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
             return value, stored_time
         except KeyError:
-            debug(f'exposed_find_value - Value not founded.')
-            debug(f'exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
+            debug(f'ProtocolService.exposed_find_value - Value not founded.')
+            debug(f'ProtocolService.exposed_find_value - Incoming connection from {Contact.from_json(client)}.')
             return None
 
     def update_contact(self, contact:Contact):
-        debug(f'update_contact - Updating contact: {Contact}.')
+        debug(f'ProtocolService.update_contact - Updating contact: {Contact}.')
         if not self.table.update(contact):
             bucket = self.table.get_bucket(contact.id)
             to_remove = None
@@ -117,43 +117,43 @@ class ProtocolService(Service):
                 bucket.remove_by_contact(to_remove)
                 bucket.update(contact)
             bucket.semaphore.release()
-        debug(f'update_contact - Contact updated.')
+        debug(f'ProtocolService.update_contact - Contact updated.')
 
     def update_lamport(self, client_lamport:int=0):
-        debug(f'update_lamport - Updating actual time with time: {client_lamport}.')
+        debug(f'ProtocolService.update_lamport - Updating actual time with time: {client_lamport}.')
         self.lamport_lock.acquire()
         self.lamport = max(client_lamport, self.lamport + 1)
         self.lamport_lock.release()
-        debug(f'update_lamport - Time updated.')
+        debug(f'ProtocolService.update_lamport - Time updated.')
 
     def connect(self, contact: Contact) -> Connection:
         debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
         self.update_lamport()
         connection = connect(contact.ip, str(contact.port))
         connection.ping()
-        debug(f'Protocol.connect - Connection with contact: {contact} stablished.')
+        debug(f'ProtocolService.Protocol.connect - Connection with contact: {contact} stablished.')
         return connection
 
     @try_function()
     def ping_to(self, contact:Contact) -> bool:
-        debug(f'ping_to - Trying ping to contact: {contact}.')
+        debug(f'ProtocolService.ping_to - Trying ping to contact: {contact}.')
         connection = self.connect(contact)
         return connection.root.ping(self.my_contact.to_json(), self.lamport)
 
     @try_function()
     def store_to(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
-        debug(f'store_to - Trying store to contact: {contact} for key: {key}.')
+        debug(f'ProtocolService.store_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         return connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
 
     @try_function()
     def find_node_to(self, contact:Contact, id:int) -> list:
-        debug(f'find_node_to - Trying find_node to contact: {contact} for id: {id}')
+        debug(f'ProtocolService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
         connection = self.connect(contact)
         return connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
 
     @try_function()
     def find_value_to(self, contact:Contact, key:int) -> object:
-        debug(f'find_node_to - Trying find_value to contact: {contact} for key: {key}')
+        debug(f'ProtocolService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
         connection = self.connect(contact)
         return connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
