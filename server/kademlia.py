@@ -293,7 +293,11 @@ class KademliaService(ProtocolService):
                             debug(f'KademliaService.exposed_connect_to_network - Establishing connection with {ip}:{port}')
                             conn = connect(ip, port)
                             debug(f'KademliaService.exposed_connect_to_network - Pinging to {ip}:{port}')
-                            contact = Contact.from_json(conn.root.ping(self.my_contact.to_json(), self.lamport))
+                            result = conn.root.ping(self.my_contact.to_json(), self.lamport)
+                            if result:
+                                contact = Contact.from_json(result)
+                            else:
+                                raise Exception(f'KademliaService.exposed_connect_to_network - The contact with address {ip}:{port} is not initialized')
                             debug(f'KademliaService.exposed_connect_to_network - The contact {contact} responded to the ping correctly')
                             break
                         except Exception as e:
