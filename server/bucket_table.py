@@ -50,40 +50,35 @@ class BucketTable:
         lindex = len(left) - 1
         rindex = 0
         center.semaphore.acquire()
-        debug(f'BucketTable.get_closest_buckets - Begin iteration over center.')
         for contact in center:
+            debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
             yield contact
-        debug(f'BucketTable.get_closest_buckets - End iteration over center.')
         center.semaphore.release()
         while lindex >= 0 and rindex < len(right):
             left[lindex].semaphore.acquire()
-            debug(f'BucketTable.get_closest_buckets - Begin iteration over one member of left.')
             for contact in left[lindex]:
+                debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
                 yield contact
-            debug(f'BucketTable.get_closest_buckets - End iteration over one member of left.')
             left[lindex].semaphore.release()
             right[rindex].semaphore.acquire()
-            debug(f'BucketTable.get_closest_buckets - Begin iteration over one member of right.')
             for contact in right[rindex]:
+                debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
                 yield contact
-            debug(f'BucketTable.get_closest_buckets - End iteration over one member of right.')
             right[rindex].semaphore.release()
             lindex -= 1
             rindex += 1
         while lindex >= 0:
             left[lindex].semaphore.acquire()
-            debug(f'BucketTable.get_closest_buckets - Begin iteration over one member of left.')
             for contact in left[lindex]:
+                debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
                 yield contact
-            debug(f'BucketTable.get_closest_buckets - End iteration over one member of left.')
             left[lindex].semaphore.release()
             lindex -= 1
         while rindex < len(right):
             right[rindex].semaphore.acquire()
-            debug(f'BucketTable.get_closest_buckets - Begin iteration over one member of right.')
             for contact in right[rindex]:
+                debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
                 yield contact
-            debug(f'BucketTable.get_closest_buckets - End iteration over one member of right.')
             right[rindex].semaphore.release()
             rindex += 1
         debug(f'BucketTable.get_closest_buckets - Finish the method')
