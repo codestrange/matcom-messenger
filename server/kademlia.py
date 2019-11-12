@@ -156,6 +156,9 @@ class KademliaService(ProtocolService):
         new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.find_node_lookup - Iterate by contacts')
         for new_contact in new_contacts:
+            if new_contact == self.my_contact:
+                debug(f'KademliaService.find_node_lookup - The new_contact is equal to the my_contact, continue.')
+                continue
             debug(f'KademliaService.find_node_lookup - Pinging to contact: {new_contact}')
             if not self.ping_to(new_contact)[0]:
                 debug(f'KademliaService.find_node_lookup - The contact: {new_contact} not respond')
