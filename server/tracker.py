@@ -74,19 +74,20 @@ class TrackerService(KademliaService):
         contact = Contact(hash_id, ip, port)
         while True:
             try:
-                debug('Trying to connect to the service to start the JOIN')
+                debug('TrackerService.start - Trying to connect to the service to start the JOIN')
                 conn = connect(ip, port)
-                debug('Pinging the service')
+                debug('TrackerService.start - Pinging the service')
                 conn.ping()
-                debug('Executing the remote connect to network method in the service')
+                debug('TrackerService.start - Executing the remote connect to network method in the service')
                 result = conn.root.connect_to_network(contact.to_json())
+                debug(f'TrackerService.start - Finish connect to network with result = {result}')
                 if result:
                     break
-                error('Error doing JOIN, wait 5 seconds and try again')
+                error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
             except Exception as e:
-                error(f'Exception: {e}')
-                error('Error doing JOIN, wait 5 seconds and try again')
+                error(f'TrackerService.start - Exception: {e}')
+                error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
 
     @staticmethod
