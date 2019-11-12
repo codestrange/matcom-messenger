@@ -15,6 +15,7 @@ class Bucket:
         if len(self.nodes) >= self.k:
             return False
         self.nodes.insert(index, contact)
+        return True
 
     def find(self, contact:Contact) -> int:
         for index, node in enumerate(self.nodes):
