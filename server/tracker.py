@@ -1,4 +1,4 @@
-from logging import basicConfig, debug, error, DEBUG, BASIC_FORMAT
+from logging import basicConfig, debug, error, info, DEBUG, BASIC_FORMAT
 from random import randint
 from threading import Thread
 from time import sleep
@@ -89,6 +89,7 @@ class TrackerService(KademliaService):
                 error(f'TrackerService.start - Exception: {e}')
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
+        info('TrackerService.start - Server start successfully')
 
     @staticmethod
     def get_id_hash(id: str) -> int:
