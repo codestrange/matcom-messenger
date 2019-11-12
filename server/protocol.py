@@ -38,12 +38,12 @@ class ProtocolService(Service):
         return True
 
     def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
-        debug(f'ProtocolService.exposed_store - Incoming connection from {Contact.from_json(client)}.')
         debug(f'ProtocolService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_store - Instance not initialized')
             return False
         client = Contact.from_json(client)
+        debug(f'ProtocolService.exposed_store - Incoming connection from {client}.')
         value = self.value_cloner(value)
         self.update_lamport(client_lamport)
         self.update_contact(client)
@@ -52,7 +52,7 @@ class ProtocolService(Service):
         except KeyError:
             actual_value, actual_time = (value, store_time)
         self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
-        debug(f'ProtocolService.exposed_store - End of connection from {Contact.from_json(client)}.')
+        debug(f'ProtocolService.exposed_store - End of connection from {client}.')
         return True
 
     def exposed_ping(self, client:Contact, client_lamport:int) -> bool:
