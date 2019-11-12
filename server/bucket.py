@@ -37,3 +37,9 @@ class Bucket:
 
     def __iter__(self):
         return iter(self.nodes)
+
+    def __repr__(self):
+        return repr(self.nodes)
+
+    def __str__(self):
+        return str(self.nodes)

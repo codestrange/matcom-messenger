@@ -7,6 +7,7 @@ class Contact:
         self.ip = ip
         self.port = port
 
+    @staticmethod
     def clone(contact):
         return Contact(contact.id, contact.ip, contact.port)
 
@@ -15,6 +16,9 @@ class Contact:
 
     def __repr__(self):
         return f'<{self.id}, {self.ip}, {self.port}>'
+
+    def __str__(self):
+        return repr(self)
 
     def __hash__(self):
         return self.id
