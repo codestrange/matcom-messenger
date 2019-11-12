@@ -63,7 +63,7 @@ class ProtocolService(Service):
         debug(f'ProtocolService.exposed_ping - Incoming connection from {client}.')
         self.update_lamport(client_lamport)
         self.update_contact(client)
-        debug(f'ProtocolService.exposed_store - End of connection from {client}.')
+        debug(f'ProtocolService.exposed_ping - End of connection from {client}.')
         return self.my_contact.to_json()
 
     def exposed_find_node(self, client:Contact, client_lamport:int, id:int) -> list:

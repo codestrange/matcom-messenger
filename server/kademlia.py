@@ -323,11 +323,13 @@ class KademliaService(ProtocolService):
                         try:
                             self.exposed_client_find_node(key)
                             break
-                        except:
+                        except Exception as e:
+                            error(f'KademliaService.exposed_connect_to_network - I cannot perform the iterative find node. Exception: {e}')
                             count += 1
                     if count == 5:
                         debug(f'KademliaService.exposed_connect_to_network - I cannot perform the iterative find node')
                 self.is_started_node = True
+                debug(f'KademliaService.exposed_connect_to_network - Finish method. Node is started')
                 return True
             except Exception as e:
                 error(e)
