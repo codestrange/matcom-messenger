@@ -1,5 +1,6 @@
 from bisect import bisect_left
 from hashlib import sha1
+from logging import debug
 from threading import Semaphore, Thread
 from time import sleep
 from .contact import Contact
@@ -27,20 +28,34 @@ class ThreadManager:
 
     def start(self):
         while True:
-            if self.start_cond():
+            value = self.start_cond()
+            debug(f'ThreadManager.start - Result of start condition is: {value}')
+            if value:
+                debug(f'ThreadManager.start - Acquire General Semaphore')
                 self.semaphore.acquire()
+                debug(f'ThreadManager.start - Try to create Thread')
                 t = Thread(target=self.start_point, args=self.args, kwargs=self.kwargs)
+                debug(f'ThreadManager.start - Acquire Secondary Semaphore')
                 self._semcont.acquire()
                 self._cont += 1
+                debug(f'ThreadManager.start - Add one to counter of threads. _cont = {self._cont}')
+                debug(f'ThreadManager.start - Release Secondary Semaphore')
                 self._semcont.release()
+                debug(f'ThreadManager.start - Start thread')
                 t.start()
+                debug(f'ThreadManager.start - Release General Semaphore')
                 self.semaphore.release()
             else:
                 self._semcont.acquire()
+                debug(f'ThreadManager.start - Acquire Secondary Semaphore')
                 if self._cont == 0:
+                    debug(f'ThreadManager.start - Release Secondary Semaphore')
                     self._semcont.release()
+                    debug(f'ThreadManager.start - Finish manager')
                     return
+                debug(f'ThreadManager.start - Release Secondary Semaphore')
                 self._semcont.release()
+            debug(f'ThreadManager.start - Sleeping {self.time_sleep} seconds and try again')
             sleep(self.time_sleep)
 
 
