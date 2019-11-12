@@ -131,7 +131,7 @@ class ProtocolService(Service):
         self.update_lamport()
         connection = connect(contact.ip, str(contact.port))
         connection.ping()
-        debug(f'Protocol.connect - Connection with contact: {contact} stablished.')
+        debug(f'ProtocolService.Protocol.connect - Connection with contact: {contact} stablished.')
         return connection
 
     @try_function()
