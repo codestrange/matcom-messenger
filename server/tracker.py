@@ -10,9 +10,6 @@ from .utils import get_hash
 from .kademlia import Contact, KademliaService
 
 
-basicConfig(filename='system.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
-
-
 class TrackerService(KademliaService):
     @staticmethod
     def __start_register():
@@ -49,12 +46,12 @@ class TrackerService(KademliaService):
                 sleep(5)
 
     @staticmethod
-    def start(port_random=False):
+    def start(port_random=False, inf_port=8000, sup_port=9000):
         port = 8081
         if port_random:
-            debug('TrackerService.start - Randomly generating port between 8000 and 9000')
-            port = randint(8000, 9000)
-        debug(f'TrackerService.start - Randomly generated port: {port}')
+            port = randint(inf_port, sup_port)
+        basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+        debug(f'TrackerService.start - Generated port: {port}')
         debug('TrackerService.start - Starting a thread for the registration server')
         thread_register = Thread(target=TrackerService.__start_register)
         thread_register.start()
@@ -89,7 +86,7 @@ class TrackerService(KademliaService):
                 error(f'TrackerService.start - Exception: {e}')
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(5)
-        info('TrackerService.start - Server start successfully')
+        info('TrackerService.start - Server started successfully')
 
     @staticmethod
     def get_id_hash(id: str) -> int:
