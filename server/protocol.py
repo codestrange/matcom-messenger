@@ -8,13 +8,12 @@ from .utils import try_function
 
 
 class ProtocolService(Service):
-    def __init__(self, k:int, b:int, value_cloner):
+    def __init__(self, k:int, b:int):
         super(ProtocolService, self).__init__()
         debug(f'ProtocolService.__init__ - Executing the constructor with k: {k} y b: {b}')
         self.data = {}
         self.lamport = 0
         self.lamport_lock = Semaphore()
-        self.value_cloner = value_cloner
         self.k = k
         self.b = b
         self.is_initialized = False
@@ -37,14 +36,13 @@ class ProtocolService(Service):
         debug(f'ProtocolService.exposed_init - End initializing with contact: {contact}.')
         return True
 
-    def exposed_store(self, client:Contact, client_lamport:int, key:int, value:object, store_time:int) -> bool:
+    def exposed_store(self, client:Contact, client_lamport:int, key:int, value:str, store_time:int) -> bool:
         debug(f'ProtocolService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_store - Instance not initialized')
             return False
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_store - Incoming connection from {client}.')
-        value = self.value_cloner(value)
         self.update_lamport(client_lamport)
         self.update_contact(client)
         try:
@@ -141,7 +139,7 @@ class ProtocolService(Service):
         return connection.root.ping(self.my_contact.to_json(), self.lamport)
 
     @try_function()
-    def store_to(self, contact:Contact, key:int, value:object, store_time:int) -> bool:
+    def store_to(self, contact:Contact, key:int, value:str, store_time:int) -> bool:
         debug(f'ProtocolService.store_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         return connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)

@@ -12,8 +12,8 @@ from .utils import KContactSortedArray, ThreadManager, try_function
 
 
 class KademliaService(ProtocolService):
-    def __init__(self, k: int, b:int, a:int, value_cloner):
-        super(KademliaService, self).__init__(k, b, value_cloner)
+    def __init__(self, k: int, b:int, a:int):
+        super(KademliaService, self).__init__(k, b)
         debug(f'KademliaService.exposed_init - Executing the init with the k: {k},b: {b} and a: {a}')
         self.a = a
         self.is_started_node = False
@@ -24,12 +24,10 @@ class KademliaService(ProtocolService):
     def on_disconnect(self, conn:Connection):
         pass
 
-    def exposed_client_store(self, key:int, value:object) -> bool:
+    def exposed_client_store(self, key:int, value:str) -> bool:
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_store - Instance not initialized')
             return None
-        debug('KademliaService.exposed_client_store - Cloning the value')
-        value = self.value_cloner(value)
         debug('KademliaService.exposed_client_store - Starting the queue')
         queue = Queue()
         debug('KademliaService.exposed_client_store - Starting the visited nodes set')
@@ -219,7 +217,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.exposed_client_store - Finish method with value result: {value}')
         return value
 
-    def find_value_lookup(self, key:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore, last_value:object, last_value_lock:Semaphore):
+    def find_value_lookup(self, key:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore, last_value:tuple, last_value_lock:Semaphore):
         contact = None
         try:
             debug(f'KademliaService.find_value_lookup - Removing a contact from the queue')
@@ -240,7 +238,6 @@ class KademliaService(ProtocolService):
             return
         debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
         self.table.update(contact)
-        value = self.value_cloner(value)
         debug(f'KademliaService.find_value_lookup - Cloning contacts received')
         new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.find_value_lookup - Acquire lock for last value')
