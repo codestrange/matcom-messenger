@@ -32,7 +32,7 @@ class TrackerService(KademliaService):
             server = None
             try:
                 debug('TrackerService.__start_service - Creating instace of service')
-                service = TrackerService(3, 160, 3, None)
+                service = TrackerService(3, 160, 3)
                 debug('TrackerService.__start_service - Creating instace of ThreadedServer')
                 server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
                 debug('TrackerService.__start_service - Starting the service')
@@ -43,7 +43,7 @@ class TrackerService(KademliaService):
                 error(e)
                 if not server is None:
                     server.close()
-                sleep(5)
+                sleep(0.2)
 
     @staticmethod
     def start(port_random=False, inf_port=8000, sup_port=9000):
@@ -56,12 +56,12 @@ class TrackerService(KademliaService):
         thread_register = Thread(target=TrackerService.__start_register)
         thread_register.start()
         debug('TrackerService.start - Sleeping 3 seconds for the server to register to start')
-        sleep(3)
+        sleep(0.1)
         debug('TrackerService.start - Starting a thread for the service')
         thread_service = Thread(target=TrackerService.__start_service, args=(port, ))
         thread_service.start()
         debug('TrackerService.start - Sleeping 3 seconds for the service to start')
-        sleep(3)
+        sleep(0.1)
         debug('TrackerService.start - Getting ip')
         ip = TrackerService.get_ip()
         debug(f'TrackerService.start - IP obtained: {ip}')
@@ -81,11 +81,11 @@ class TrackerService(KademliaService):
                 if result:
                     break
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
-                sleep(5)
+                sleep(0.2)
             except Exception as e:
                 error(f'TrackerService.start - Exception: {e}')
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
-                sleep(5)
+                sleep(0.2)
         info('TrackerService.start - Server started successfully')
 
     @staticmethod
@@ -108,7 +108,7 @@ class TrackerService(KademliaService):
                     ip = s.getsockname()[0]
                 except:
                     error(f'TrackerService.get_ip - Error connecting to node: {peer}')
-                    sleep(3)
+                    sleep(0.1)
                     continue
                 finally:
                     s.close()

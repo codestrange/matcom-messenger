@@ -317,6 +317,8 @@ class KademliaService(ProtocolService):
                     raise Exception(f'KademliaService.exposed_connect_to_network - I can\'t perform the first iterative find node because: {e}')
                 count_of_buckets = len(self.table)
                 for i in range(count_of_buckets):
+                    if not len(self.table.get_bucket(i).nodes):
+                        continue
                     count = 0
                     while count < 5:
                         key = randint(2**i, 2**(i + 1) - 1)
@@ -334,7 +336,7 @@ class KademliaService(ProtocolService):
             except Exception as e:
                 error(e)
                 debug('KademliaService.exposed_connect_to_network - Sleep for 5 seconds and try to connect to the network again')
-                sleep(5)
+                sleep(0.2)
         return False
 
     @staticmethod
