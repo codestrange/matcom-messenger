@@ -104,6 +104,10 @@ class KademliaService(ProtocolService):
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_find_node - Instance not initialized')
             return None
+        if id == self.my_contact.id:
+            debug(f'KademliaService.exposed_client_find_node - This node is the node finded.')
+            debug(f'KademliaService.exposed_client_find_node - The node with id was found: {id}, the node is {self.my_contact}')
+            return self.my_contact.to_json()
         debug('KademliaService.exposed_client_find_node - Starting the queue')
         queue = Queue()
         debug('KademliaService.exposed_client_find_node - Starting the visited nodes set')
