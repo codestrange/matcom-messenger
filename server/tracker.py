@@ -46,11 +46,14 @@ class TrackerService(KademliaService):
                 sleep(0.2)
 
     @staticmethod
-    def start(port_random=False, inf_port=8000, sup_port=9000):
+    def start(port_random=False, log_to_file=True, inf_port=8000, sup_port=9000):
         port = 8081
         if port_random:
             port = randint(inf_port, sup_port)
-        basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+        if log_to_file:
+            basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+        else:
+            basicConfig(format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
         debug(f'TrackerService.start - Generated port: {port}')
         debug('TrackerService.start - Starting a thread for the registration server')
         thread_register = Thread(target=TrackerService.__start_register)
