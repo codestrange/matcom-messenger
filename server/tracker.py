@@ -32,7 +32,7 @@ class TrackerService(KademliaService):
             server = None
             try:
                 debug('TrackerService.__start_service - Creating instace of service')
-                service = TrackerService(3, 160, 3, None)
+                service = TrackerService(3, 160, 3)
                 debug('TrackerService.__start_service - Creating instace of ThreadedServer')
                 server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
                 debug('TrackerService.__start_service - Starting the service')
