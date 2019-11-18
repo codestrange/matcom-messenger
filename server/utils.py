@@ -7,7 +7,7 @@ from .contact import Contact
 
 
 class ThreadManager:
-    def __init__(self, alpha, start_cond, start_point, args=(), kwargs={}, time_sleep=1):
+    def __init__(self, alpha, start_cond, start_point, args=(), kwargs={}, time_sleep=0.1):
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args
