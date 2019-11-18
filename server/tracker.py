@@ -11,6 +11,42 @@ from .kademlia import Contact, KademliaService
 
 
 class TrackerService(KademliaService):
+
+    @staticmethod
+    def log_table(ip, port=None):
+        if isinstance(ip, tuple) and len(ip) > 1:
+            ip, port = ip[0], ip[1]
+        if port is None:
+            raise Exception('Port is None.')
+        conn = connect(ip, port)
+        conn.root.client_table()
+
+    @staticmethod
+    def log_data(ip, port=None):
+        if isinstance(ip, tuple) and len(ip) > 1:
+            ip, port = ip[0], ip[1]
+        if port is None:
+            raise Exception('Port is None.')
+        conn = connect(ip, port)
+        conn.root.client_data()
+
+    def exposed_client_table(self):
+        result = ''
+        for index, bucket in enumerate(self.table):
+            if len(bucket):
+                result += f'Bucket: {index}\n'
+                for node in bucket:
+                    result += f'{node}\n'
+        with open(f'table_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+            file.write(result)
+
+    def exposed_client_data(self):
+        result = ''
+        for key in self.data:
+            result += f'{key}:{self.data[key]}\n'
+        with open(f'data_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+            file.write(result)
+
     @staticmethod
     def __start_register():
         while True:
