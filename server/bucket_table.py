@@ -4,7 +4,7 @@ from .contact import Contact
 
 
 class BucketTable:
-    def __init__(self, k:int, b:int, id:int):
+    def __init__(self, k: int, b: int, id: int):
         self.k = k
         self.b = b
         self.id = id
@@ -12,7 +12,7 @@ class BucketTable:
         for _ in range(b):
             self.buckets.append(Bucket(self.k))
 
-    def get_bucket(self, id:int) -> Bucket:
+    def get_bucket(self, id: int) -> Bucket:
         debug(f'BucketTable.get_bucket - Getting bucket for id: {id}.')
         index = self.get_bucket_index(id)
         self.buckets[index].semaphore.acquire()
@@ -21,7 +21,7 @@ class BucketTable:
         self.buckets[index].semaphore.release()
         return result
 
-    def get_bucket_index(self, id:int) -> int:
+    def get_bucket_index(self, id: int) -> int:
         debug(f'BucketTable.get_bucket_index - Getting bucket index for id: {id}.')
         distance = self.id ^ id
         debug(f'BucketTable.get_bucket_index - Distance between {self.id} and {id} = {distance}.')
@@ -29,7 +29,7 @@ class BucketTable:
         debug(f'BucketTable.get_bucket_index - Resulting index: {index}.')
         return index
 
-    def update(self, contact:Contact) -> bool:
+    def update(self, contact: Contact) -> bool:
         debug(f'BucketTable.update - Updating contact: {contact}.')
         bucket = self.get_bucket(contact.id)
         debug(f'BucketTable.update - Bucket to update bucket: {bucket}.')
@@ -39,7 +39,7 @@ class BucketTable:
         bucket.semaphore.release()
         return result
 
-    def get_closest_buckets(self, id:int) -> list:
+    def get_closest_buckets(self, id: int) -> list:
         debug(f'BucketTable.get_closest_buckets - Starting method with id: {id}')
         index = self.get_bucket_index(id)
         debug(f'BucketTable.get_closest_buckets - Index of bucket of id: {id} is {index}')

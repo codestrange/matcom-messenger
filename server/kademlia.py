@@ -7,24 +7,23 @@ from rpyc import connect, Connection, discover
 from rpyc.utils.factory import DiscoveryError
 from .contact import Contact
 from .protocol import ProtocolService
-from .contact import Contact
-from .utils import KContactSortedArray, ThreadManager, try_function
+from .utils import KContactSortedArray, ThreadManager
 
 
 class KademliaService(ProtocolService):
-    def __init__(self, k: int, b:int, a:int):
+    def __init__(self, k: int, b: int, a: int):
         super(KademliaService, self).__init__(k, b)
         debug(f'KademliaService.exposed_init - Executing the init with the k: {k},b: {b} and a: {a}')
         self.a = a
         self.is_started_node = False
 
-    def on_connect(self, conn:Connection):
+    def on_connect(self, conn: Connection):
         pass
 
-    def on_disconnect(self, conn:Connection):
+    def on_disconnect(self, conn: Connection):
         pass
 
-    def exposed_client_store(self, key:int, value:str) -> bool:
+    def exposed_client_store(self, key: int, value: str) -> bool:
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_store - Instance not initialized')
             return None
@@ -61,7 +60,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.exposed_client_store - Finish method with result: {success}')
         return success
 
-    def store_lookup(self, key:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
+    def store_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore):
         contact = None
         try:
             debug(f'KademliaService.store_lookup - Removing a contact from the queue')
@@ -100,7 +99,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.store_lookup - The contact: {new_contact} is in the queue')
                 queue_lock.release()
 
-    def exposed_client_find_node(self, id:int) -> list:
+    def exposed_client_find_node(self, id: int) -> list:
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_find_node - Instance not initialized')
             return None
@@ -138,7 +137,7 @@ class KademliaService(ProtocolService):
         debug('KademliaService.exposed_client_find_node - Finish method without finded node')
         return None
 
-    def find_node_lookup(self, id:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore):
+    def find_node_lookup(self, id: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore):
         contact = None
         try:
             debug(f'KademliaService.find_node_lookup - Removing a contact from the queue')
@@ -180,7 +179,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.find_node_lookup - The contact: {new_contact} is in the queue')
                 queue_lock.release()
 
-    def exposed_client_find_value(self, key:int) -> object:
+    def exposed_client_find_value(self, key: int) -> object:
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_find_value - Instance not initialized')
             return None
@@ -221,7 +220,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.exposed_client_store - Finish method with value result: {value}')
         return value
 
-    def find_value_lookup(self, key:int, queue:Queue, top:KContactSortedArray, visited:set, queue_lock:Semaphore, last_value:tuple, last_value_lock:Semaphore):
+    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: tuple, last_value_lock: Semaphore):
         contact = None
         try:
             debug(f'KademliaService.find_value_lookup - Removing a contact from the queue')
@@ -273,7 +272,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.find_value_lookup - The contact: {new_contact} is in the queue')
                 queue_lock.release()
 
-    def exposed_connect_to_network(self, contact:str):
+    def exposed_connect_to_network(self, contact: str):
         self.exposed_init(contact)
         contact = Contact.from_json(contact)
         while not self.is_started_node:
@@ -310,7 +309,7 @@ class KademliaService(ProtocolService):
                     if count == 5:
                         debug(f'KademliaService.exposed_connect_to_network - The service with address {ip}: {port} does not respond')
                         continue
-                    if not contact == self.my_contact:
+                    if contact != self.my_contact:
                         mark = True
                         self.table.update(contact)
                 if not mark:
@@ -321,7 +320,7 @@ class KademliaService(ProtocolService):
                     raise Exception(f'KademliaService.exposed_connect_to_network - I can\'t perform the first iterative find node because: {e}')
                 count_of_buckets = len(self.table)
                 for i in range(count_of_buckets):
-                    if not len(self.table.get_bucket(i).nodes):
+                    if not self.table.get_bucket(i):
                         continue
                     count = 0
                     while count < 5:
@@ -344,8 +343,8 @@ class KademliaService(ProtocolService):
         return False
 
     @staticmethod
-    def get_name(cls) -> str:
-        name = cls.__name__
+    def get_name(arg) -> str:
+        name = arg.__name__
         service = 'Service'
         if name.endswith(service):
             return name[:-len(service)]
