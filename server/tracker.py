@@ -1,4 +1,4 @@
-from logging import basicConfig, debug, error, info, DEBUG, BASIC_FORMAT
+from logging import basicConfig, debug, error, info, DEBUG
 from random import randint
 from threading import Thread
 from time import sleep
@@ -11,6 +11,42 @@ from .kademlia import Contact, KademliaService
 
 
 class TrackerService(KademliaService):
+
+    @staticmethod
+    def log_table(ip, port=None):
+        if isinstance(ip, tuple) and len(ip) > 1:
+            ip, port = ip[0], ip[1]
+        if port is None:
+            raise Exception('Port is None.')
+        conn = connect(ip, port)
+        conn.root.client_table()
+
+    @staticmethod
+    def log_data(ip, port=None):
+        if isinstance(ip, tuple) and len(ip) > 1:
+            ip, port = ip[0], ip[1]
+        if port is None:
+            raise Exception('Port is None.')
+        conn = connect(ip, port)
+        conn.root.client_data()
+
+    def exposed_client_table(self):
+        result = ''
+        for index, bucket in enumerate(self.table):
+            if bucket:
+                result += f'Bucket: {index}\n'
+                for node in bucket:
+                    result += f'{node}\n'
+        with open(f'table_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+            file.write(result)
+
+    def exposed_client_data(self):
+        result = ''
+        for key in self.data:
+            result += f'{key}:{self.data[key]}\n'
+        with open(f'data_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+            file.write(result)
+
     @staticmethod
     def __start_register():
         while True:
@@ -20,21 +56,21 @@ class TrackerService(KademliaService):
                 server = UDPRegistryServer(pruning_timeout=DEFAULT_PRUNING_TIMEOUT)
                 server.start()
                 break
-            except:
-                error('TrackerService.__start_register - Error starting server to register, sleeping 5 seconds and trying again')
+            except Exception as e:
+                error(f'TrackerService.__start_register - Error starting server to register, sleeping 5 seconds and trying again. Exception: {e}')
                 if not server is None:
                     server.close()
                 sleep(5)
 
     @staticmethod
-    def __start_service(port:int):
+    def __start_service(port: int):
         while True:
             server = None
             try:
                 debug('TrackerService.__start_service - Creating instace of service')
                 service = TrackerService(3, 160, 3)
                 debug('TrackerService.__start_service - Creating instace of ThreadedServer')
-                server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={ 'allow_public_attrs': True})
+                server = ThreadedServer(service, port=port, registrar=UDPRegistryClient(), protocol_config={'allow_public_attrs': True})
                 debug('TrackerService.__start_service - Starting the service')
                 server.start()
                 break
@@ -46,11 +82,14 @@ class TrackerService(KademliaService):
                 sleep(0.2)
 
     @staticmethod
-    def start(port_random=False, inf_port=8000, sup_port=9000):
+    def start(port_random=False, log_to_file=True, inf_port=8000, sup_port=9000):
         port = 8081
         if port_random:
             port = randint(inf_port, sup_port)
-        basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+        if log_to_file:
+            basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+        else:
+            basicConfig(format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
         debug(f'TrackerService.start - Generated port: {port}')
         debug('TrackerService.start - Starting a thread for the registration server')
         thread_register = Thread(target=TrackerService.__start_register)
@@ -106,13 +145,13 @@ class TrackerService(KademliaService):
                     debug(f'TrackerService.get_ip - Attempting to connect to the node: {peer}')
                     s.connect(peer)
                     ip = s.getsockname()[0]
-                except:
-                    error(f'TrackerService.get_ip - Error connecting to node: {peer}')
+                except Exception as e:
+                    error(f'TrackerService.get_ip - Error connecting to node: {peer}. Exception: {e}')
                     sleep(0.1)
                     continue
                 finally:
                     s.close()
-        except:
-            error('TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered')
-            ip = gethostbyname(gethostname()) # This should never happen if 
+        except Exception as e:
+            error(f'TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered. Exception: {e}')
+            ip = gethostbyname(gethostname()) # This should never happen if
         return ip

@@ -1,17 +1,17 @@
 from bisect import bisect_left
 from hashlib import sha1
-from logging import debug
+from logging import debug, error
 from threading import Semaphore, Thread
 from time import sleep
 from .contact import Contact
 
 
 class ThreadManager:
-    def __init__(self, alpha, start_cond, start_point, args=(), kwargs={}, time_sleep=0.1):
+    def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=0.1):
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args
-        self.kwargs = kwargs
+        self.kwargs = kwargs if not kwargs is None else {}
         self._cont = 0
         self._semcont = Semaphore()
         self.time_sleep = time_sleep
@@ -60,13 +60,13 @@ class ThreadManager:
 
 
 class KContactSortedArray:
-    def __init__(self, k:int, reference:int):
+    def __init__(self, k: int, reference: int):
         self.k = k
         self.values = []
         self.reference = reference
         self.semaphore = Semaphore()
 
-    def push(self, contact:Contact) -> bool:
+    def push(self, contact: Contact) -> bool:
         self.semaphore.acquire()
         difference = self.reference ^ contact.id
         index = bisect_left([d for d, _ in self.values], difference)
@@ -95,8 +95,9 @@ def try_function(times=3, sleep_time=0):
                 try:
                     result = function(*args, **kwargs)
                     return True, result
-                except:
+                except Exception as e:
                     count += 1
+                    error(f'try_function - {e}')
                 if sleep_time:
                     sleep(sleep_time)
             return False, None
