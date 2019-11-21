@@ -105,6 +105,8 @@ class ProtocolService(Service):
 
     def update_contact(self, contact: Contact):
         debug(f'ProtocolService.update_contact - Updating contact: {contact}.')
+        if contact == self.my_contact:
+            return
         if not self.table.update(contact):
             bucket = self.table.get_bucket(contact.id)
             to_remove = None
