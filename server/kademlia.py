@@ -191,7 +191,7 @@ class KademliaService(ProtocolService):
         top_contacts = KContactSortedArray(self.k, key)
         debug('KademliaService.exposed_client_find_value - Starting the semaphore for the queue')
         queue_lock = Semaphore()
-        last_value = (None, -1)
+        last_value = [None, -1]
         debug('KademliaService.exposed_client_find_value - Starting the semaphore for the last value')
         last_value_lock = Semaphore()
         debug(f'KademliaService.exposed_client_find_value - Starting the iteration on contacts more closes to key: {key}')
@@ -220,7 +220,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.exposed_client_store - Finish method with value result: {value}')
         return value
 
-    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: tuple, last_value_lock: Semaphore):
+    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: list, last_value_lock: Semaphore):
         contact = None
         try:
             debug(f'KademliaService.find_value_lookup - Removing a contact from the queue')
@@ -248,7 +248,7 @@ class KademliaService(ProtocolService):
         debug(f'KademliaService.find_value_lookup - Checking for update last value. Actual Time: {time}, Last Time: {last_value[1]}')
         if time > last_value[1]:
             debug(f'KademliaService.find_value_lookup - Update the last value')
-            last_value = (value, time)
+            last_value[0], last_value[1] =  value, time
         debug(f'KademliaService.find_value_lookup - Release lock for last value')
         last_value_lock.release()
         debug(f'KademliaService.find_value_lookup - Iterate by contacts')
