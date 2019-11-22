@@ -36,4 +36,4 @@ class Contact:
     @staticmethod
     def from_json(contact):
         contact = loads(contact)
-        return Contact(contact['id'], contact['ip'], contact['port'])
+        return Contact(int(contact['id']), contact['ip'], int(contact['port']))

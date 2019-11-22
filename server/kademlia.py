@@ -75,7 +75,7 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.store_lookup - No connection to the node: {contact} was established')
             return
         debug(f'KademliaService.store_lookup - Update the table with contact: {contact}')
-        self.table.update(contact)
+        self.update_contact(contact)
         debug(f'KademliaService.store_lookup - Cloning contacts received')
         new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.store_lookup - Iterate by contacts')
@@ -85,7 +85,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.store_lookup - The contact: {new_contact} not respond')
                 continue
             debug(f'KademliaService.store_lookup - Update the table with contact: {new_contact}')
-            self.table.update(new_contact)
+            self.update_contact(new_contact)
             debug(f'KademliaService.store_lookup - Lock the queue')
             queue_lock.acquire()
             if not new_contact in visited:
@@ -152,7 +152,7 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.find_node_lookup - No connection to the node: {contact} was established')
             return
         debug(f'KademliaService.find_node_lookup - Update the table with contact: {contact}')
-        self.table.update(contact)
+        self.update_contact(contact)
         debug(f'KademliaService.find_node_lookup - Cloning contacts received')
         new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.find_node_lookup - Iterate by contacts')
@@ -165,7 +165,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.find_node_lookup - The contact: {new_contact} not respond')
                 continue
             debug(f'KademliaService.find_node_lookup - Update the table with contact: {new_contact}')
-            self.table.update(new_contact)
+            self.update_contact(new_contact)
             debug(f'KademliaService.find_node_lookup - Lock the queue')
             queue_lock.acquire()
             if not new_contact in visited:
@@ -240,7 +240,7 @@ class KademliaService(ProtocolService):
             debug(f'KademliaService.find_value_lookup - No connection to the node: {contact} was established')
             return
         debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
-        self.table.update(contact)
+        self.update_contact(contact)
         debug(f'KademliaService.find_value_lookup - Cloning contacts received')
         new_contacts = map(Contact.from_json, new_contacts)
         debug(f'KademliaService.find_value_lookup - Acquire lock for last value')
@@ -258,7 +258,7 @@ class KademliaService(ProtocolService):
                 debug(f'KademliaService.find_value_lookup - The contact: {new_contact} not respond')
                 continue
             debug(f'KademliaService.find_value_lookup - Update the table with contact: {new_contact}')
-            self.table.update(new_contact)
+            self.update_contact(new_contact)
             debug(f'KademliaService.find_value_lookup - Lock the queue')
             queue_lock.acquire()
             if not new_contact in visited:
@@ -311,7 +311,7 @@ class KademliaService(ProtocolService):
                         continue
                     if contact != self.my_contact:
                         mark = True
-                        self.table.update(contact)
+                        self.update_contact(contact)
                 if not mark:
                     raise Exception('KademliaService.exposed_connect_to_network - Not discover node different')
                 try:
