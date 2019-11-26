@@ -130,7 +130,7 @@ class ProtocolService(Service):
     def connect(self, contact: Contact) -> Connection:
         debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
         self.update_lamport()
-        connection = connect(contact.ip, str(contact.port))
+        connection = connect(contact.ip, str(contact.port), config={'sync_request_timeout': 1})
         connection.ping()
         debug(f'ProtocolService.Protocol.connect - Connection with contact: {contact} stablished.')
         return connection
