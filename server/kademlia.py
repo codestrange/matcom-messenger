@@ -1,7 +1,7 @@
 from logging import debug, error
 from queue import Empty, Queue
 from random import randint
-from threading import Semaphore
+from threading import Semaphore, Thread
 from time import sleep
 from rpyc import connect, Connection, discover, Service
 from rpyc.utils.factory import DiscoveryError
@@ -451,13 +451,17 @@ class KademliaService(Service):
                 sleep(0.2)
         return False
 
-    def update_values(force=False):
+    def update_values(self, force=False):
         if self.update_time is None and not force:
             return
         debug(f'KademliaService.update_values - Starting')
         if self.lamport % self.update_time and not force:
             debug(f'KademliaService.update_values - No time for update')
             return
+        thread = Thread(target=self.threaded_update_values, args=(self, force))
+        thread.start()
+
+    def threaded_update_values(self, force):
         debug(f'KademliaService.update_values - Acquire lock for data')
         self.data_lock.acquire()
         debug(f'KademliaService.update_values - Copying data for temporal list')
@@ -473,7 +477,6 @@ class KademliaService(Service):
             debug(f'KademliaService.update_values - Call client store with key: {i[0]}, values: {i[1][0]} and time: {i[1][1]}')
             success = success or self.exposed_client_store(i[0], i[1][0], i[1][1])
         debug(f'KademliaService.update_values - Finish with result: {success}')
-        return success
 
     def update_contact(self, contact: Contact):
         debug(f'KademliaService.update_contact - Updating contact: {contact}.')
