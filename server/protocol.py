@@ -139,22 +139,30 @@ class ProtocolService(Service):
     def ping_to(self, contact: Contact) -> bool:
         debug(f'ProtocolService.ping_to - Trying ping to contact: {contact}.')
         connection = self.connect(contact)
-        return connection.root.ping(self.my_contact.to_json(), self.lamport)
+        result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def store_to(self, contact: Contact, key: int, value: str, store_time: int) -> bool:
         debug(f'ProtocolService.store_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        return connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def find_node_to(self, contact: Contact, id: int) -> list:
         debug(f'ProtocolService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
         connection = self.connect(contact)
-        return connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def find_value_to(self, contact: Contact, key: int) -> object:
         debug(f'ProtocolService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
         connection = self.connect(contact)
-        return connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        self.update_lamport(peer_time)
+        return result
