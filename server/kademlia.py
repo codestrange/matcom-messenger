@@ -3,27 +3,115 @@ from queue import Empty, Queue
 from random import randint
 from threading import Semaphore
 from time import sleep
-from rpyc import connect, Connection, discover
+from rpyc import connect, Connection, discover, Service
 from rpyc.utils.factory import DiscoveryError
+from .bucket_table import BucketTable
 from .contact import Contact
-from .protocol import ProtocolService
-from .utils import KContactSortedArray, ThreadManager
+from .data import Data
+from .utils import connect, KContactSortedArray, ThreadManager, try_function
 
 
-class KademliaService(ProtocolService):
-    def __init__(self, k: int, b: int, a: int):
-        super(KademliaService, self).__init__(k, b)
+class KademliaService(Service):
+    def __init__(self, k: int, b: int, a: int, update_time: int = None):
+        super(KademliaService, self).__init__()
         debug(f'KademliaService.exposed_init - Executing the init with the k: {k},b: {b} and a: {a}')
         self.a = a
         self.is_started_node = False
+        self.data = Data()
+        self.lamport = 0
+        self.lamport_lock = Semaphore()
+        self.k = k
+        self.b = b
+        self.is_initialized = False
+        self.is_initialized_lock = Semaphore()
+        self.my_contact = None
+        self.table = None
+        self.update_time = update_time
 
-    def on_connect(self, conn: Connection):
-        pass
+    def exposed_init(self, contact: Contact):
+        if self.is_initialized:
+            return True
+        self.my_contact = Contact.from_json(contact)
+        debug(f'KademliaService.exposed_init - Initializing with contact: {contact}.')
+        debug(f'KademliaService.exposed_init - Executing the init with the contact: {self.my_contact}')
+        self.table = BucketTable(self.k, self.b, self.my_contact.id)
+        self.is_initialized = True
+        debug(f'KademliaService.exposed_init - End initializing with contact: {contact}.')
+        return True
 
-    def on_disconnect(self, conn: Connection):
-        pass
+    def exposed_ping(self, client: Contact, client_lamport: int) -> bool:
+        if not self.is_initialized:
+            error(f'KademliaService.exposed_ping - Instance not initialized')
+            return None, self.lamport
+        client = Contact.from_json(client)
+        debug(f'KademliaService.exposed_ping - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        debug(f'KademliaService.exposed_ping - End of connection from {client}.')
+        return self.my_contact.to_json(), self.lamport
 
-    def exposed_client_store(self, key: int, value: str) -> bool:
+    def exposed_store(self, client: Contact, client_lamport: int, key: int, value: str, store_time: int) -> bool:
+        debug(f'KademliaService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
+        if not self.is_initialized:
+            error(f'KademliaService.exposed_store - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'KademliaService.exposed_store - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        try:
+            debug(f'KademliaService.exposed_store - Acquire lock for data')
+            self.data.lock.acquire()
+            actual_value, actual_time = self.data[key]
+            self.data.lock.release()
+            debug(f'KademliaService.exposed_store - Release lock for data')
+        except KeyError:
+            actual_value, actual_time = (value, store_time)
+        self.data.lock.acquire()
+        self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
+        self.data.lock.release()
+        debug(f'KademliaService.exposed_store - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_find_node(self, client: Contact, client_lamport: int, id: int) -> list:
+        if not self.is_initialized:
+            error(f'KademliaService.exposed_find_node - Instance not initialized')
+            return None, self.lamport
+        client = Contact.from_json(client)
+        debug(f'KademliaService.exposed_find_node - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        result = []
+        count = 0
+        for contact in list(self.table.get_closest_buckets(id)):
+            result.append(contact.to_json())
+            count += 1
+            if count >= self.k:
+                break
+        debug(f'KademliaService.exposed_find_node - Replaying with {result}.')
+        debug(f'KademliaService.exposed_find_node - End of connection from {client}.')
+        return result, self.lamport
+
+    def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> object:
+        if not self.is_initialized:
+            error(f'KademliaService.exposed_find_value - Instance not initialized')
+            return None, self.lamport
+        client = Contact.from_json(client)
+        debug(f'KademliaService.exposed_find_value - Incoming connection from {client}.')
+        debug(f'KademliaService.exposed_find_value - Asking for key: {key}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        try:
+            value, stored_time = self.data[key]
+            debug(f'KademliaService.exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
+            debug(f'KademliaService.exposed_find_value - Incoming connection from {client}.')
+            return (value, stored_time), self.lamport
+        except KeyError:
+            debug(f'KademliaService.exposed_find_value - Value not founded.')
+            debug(f'KademliaService.exposed_find_value - Incoming connection from {client}.')
+            return None, self.lamport
+
+    def exposed_client_store(self, key: int, value: str, store_time: int = None) -> bool:
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_store - Instance not initialized')
             return None
@@ -56,7 +144,7 @@ class KademliaService(ProtocolService):
         manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
-        time = self.lamport
+        time = self.lamport if store_time is None else store_time
         debug(f'KademliaService.exposed_client_store - Time for store: {time}')
         debug(f'KademliaService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
         for contact in top_contacts:
@@ -362,9 +450,97 @@ class KademliaService(ProtocolService):
                 sleep(0.2)
         return False
 
+    def update_values(force=False):
+        if self.update_time is None and not force:
+            return
+        debug(f'KademliaService.update_values - Starting')
+        if self.lamport % self.update_time and not force:
+            debug(f'KademliaService.update_values - No time for update')
+            return
+        debug(f'KademliaService.update_values - Acquire lock for data')
+        self.data.lock.acquire()
+        debug(f'KademliaService.update_values - Copying data for temporal list')
+        temp = []
+        for key in self.data:
+            temp.append((key, self.data[key]))
+        debug(f'KademliaService.update_values - Clear data')
+        self.data.clear()
+        self.data.lock.release()
+        debug(f'KademliaService.update_values - Release lock for data')
+        success = False
+        for i in temp:
+            debug(f'KademliaService.update_values - Call client store with key: {i[0]}, values: {i[1][0]} and time: {i[1][1]}')
+            success = success or self.exposed_client_store(i[0], i[1][0], i[1][1])
+        debug(f'KademliaService.update_values - Finish with result: {success}')
+        return success
+
+    def update_contact(self, contact: Contact):
+        debug(f'KademliaService.update_contact - Updating contact: {contact}.')
+        if contact == self.my_contact:
+            return
+        if not self.table.update(contact):
+            bucket = self.table.get_bucket(contact.id)
+            to_remove = None
+            bucket.semaphore.acquire()
+            for stored in bucket:
+                if not self.ping_to(stored)[0]:
+                    to_remove = stored
+            if to_remove:
+                bucket.remove_by_contact(to_remove)
+                bucket.update(contact)
+            bucket.semaphore.release()
+        debug(f'KademliaService.update_contact - Contact updated.')
+
+    def update_lamport(self, client_lamport: int = 0):
+        debug(f'KademliaService.update_lamport - Updating actual time with time: {client_lamport}.')
+        self.lamport_lock.acquire()
+        self.lamport = max(client_lamport, self.lamport + 1)
+        self.lamport_lock.release()
+        debug(f'KademliaService.update_lamport - Time updated.')
+
+    def connect(self, contact: Contact) -> Connection:
+        debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
+        self.update_lamport()
+        connection = connect(contact.ip, str(contact.port), timeout=0.5)
+        connection.ping()
+        debug(f'KademliaService.Protocol.connect - Connection with contact: {contact} stablished.')
+        return connection
+
     @staticmethod
     def get_name(arg) -> str:
         name = arg.__name__
         service = 'Service'
         if name.endswith(service):
             return name[:-len(service)]
+
+    @try_function()
+    def ping_to(self, contact: Contact) -> bool:
+        debug(f'KademliaService.ping_to - Trying ping to contact: {contact}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def store_to(self, contact: Contact, key: int, value: str, store_time: int) -> bool:
+        debug(f'KademliaService.store_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def find_node_to(self, contact: Contact, id: int) -> list:
+        debug(f'KademliaService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def find_value_to(self, contact: Contact, key: int) -> object:
+        debug(f'KademliaService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        self.update_lamport(peer_time)
+        return result
