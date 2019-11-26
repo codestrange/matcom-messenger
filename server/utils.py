@@ -3,6 +3,7 @@ from hashlib import sha1
 from logging import debug, error
 from threading import Semaphore, Thread
 from time import sleep
+from rpyc.core.service import VoidService
 from rpyc.core.stream import SocketStream
 from rpyc.utils.factory import connect_stream
 from .contact import Contact
