@@ -41,7 +41,7 @@ class ProtocolService(Service):
         debug(f'ProtocolService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
         if not self.is_initialized:
             error(f'ProtocolService.exposed_store - Instance not initialized')
-            return False
+            return False, self.lamport
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_store - Incoming connection from {client}.')
         self.update_lamport(client_lamport)
@@ -57,7 +57,7 @@ class ProtocolService(Service):
     def exposed_ping(self, client: Contact, client_lamport: int) -> bool:
         if not self.is_initialized:
             error(f'ProtocolService.exposed_ping - Instance not initialized')
-            return None
+            return None, self.lamport
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_ping - Incoming connection from {client}.')
         self.update_lamport(client_lamport)
@@ -87,7 +87,7 @@ class ProtocolService(Service):
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> object:
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_value - Instance not initialized')
-            return None
+            return None, self.lamport
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_find_value - Incoming connection from {client}.')
         debug(f'ProtocolService.exposed_find_value - Asking for key: {key}.')
