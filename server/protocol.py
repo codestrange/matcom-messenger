@@ -52,7 +52,7 @@ class ProtocolService(Service):
             actual_value, actual_time = (value, store_time)
         self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
         debug(f'ProtocolService.exposed_store - End of connection from {client}.')
-        return True
+        return True, self.lamport
 
     def exposed_ping(self, client: Contact, client_lamport: int) -> bool:
         if not self.is_initialized:
@@ -63,12 +63,12 @@ class ProtocolService(Service):
         self.update_lamport(client_lamport)
         self.update_contact(client)
         debug(f'ProtocolService.exposed_ping - End of connection from {client}.')
-        return self.my_contact.to_json()
+        return self.my_contact.to_json(), self.lamport
 
     def exposed_find_node(self, client: Contact, client_lamport: int, id: int) -> list:
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_node - Instance not initialized')
-            return None
+            return None, self.lamport
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_find_node - Incoming connection from {client}.')
         self.update_lamport(client_lamport)
@@ -82,7 +82,7 @@ class ProtocolService(Service):
                 break
         debug(f'ProtocolService.exposed_find_node - Replaying with {result}.')
         debug(f'ProtocolService.exposed_find_node - End of connection from {client}.')
-        return result
+        return result, self.lamport
 
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> object:
         if not self.is_initialized:
@@ -97,11 +97,11 @@ class ProtocolService(Service):
             value, stored_time = self.data[key]
             debug(f'ProtocolService.exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
             debug(f'ProtocolService.exposed_find_value - Incoming connection from {client}.')
-            return value, stored_time
+            return (value, stored_time), self.lamport
         except KeyError:
             debug(f'ProtocolService.exposed_find_value - Value not founded.')
             debug(f'ProtocolService.exposed_find_value - Incoming connection from {client}.')
-            return None
+            return None, self.lamport
 
     def update_contact(self, contact: Contact):
         debug(f'ProtocolService.update_contact - Updating contact: {contact}.')
@@ -139,22 +139,30 @@ class ProtocolService(Service):
     def ping_to(self, contact: Contact) -> bool:
         debug(f'ProtocolService.ping_to - Trying ping to contact: {contact}.')
         connection = self.connect(contact)
-        return connection.root.ping(self.my_contact.to_json(), self.lamport)
+        result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def store_to(self, contact: Contact, key: int, value: str, store_time: int) -> bool:
         debug(f'ProtocolService.store_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        return connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def find_node_to(self, contact: Contact, id: int) -> list:
         debug(f'ProtocolService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
         connection = self.connect(contact)
-        return connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        self.update_lamport(peer_time)
+        return result
 
     @try_function()
     def find_value_to(self, contact: Contact, key: int) -> object:
         debug(f'ProtocolService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
         connection = self.connect(contact)
-        return connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        self.update_lamport(peer_time)
+        return result
