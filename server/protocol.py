@@ -52,7 +52,7 @@ class ProtocolService(Service):
             actual_value, actual_time = (value, store_time)
         self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
         debug(f'ProtocolService.exposed_store - End of connection from {client}.')
-        return True
+        return True, self.lamport
 
     def exposed_ping(self, client: Contact, client_lamport: int) -> bool:
         if not self.is_initialized:
@@ -63,12 +63,12 @@ class ProtocolService(Service):
         self.update_lamport(client_lamport)
         self.update_contact(client)
         debug(f'ProtocolService.exposed_ping - End of connection from {client}.')
-        return self.my_contact.to_json()
+        return self.my_contact.to_json(), self.lamport
 
     def exposed_find_node(self, client: Contact, client_lamport: int, id: int) -> list:
         if not self.is_initialized:
             error(f'ProtocolService.exposed_find_node - Instance not initialized')
-            return None
+            return None, self.lamport
         client = Contact.from_json(client)
         debug(f'ProtocolService.exposed_find_node - Incoming connection from {client}.')
         self.update_lamport(client_lamport)
@@ -82,7 +82,7 @@ class ProtocolService(Service):
                 break
         debug(f'ProtocolService.exposed_find_node - Replaying with {result}.')
         debug(f'ProtocolService.exposed_find_node - End of connection from {client}.')
-        return result
+        return result, self.lamport
 
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> object:
         if not self.is_initialized:
@@ -97,11 +97,11 @@ class ProtocolService(Service):
             value, stored_time = self.data[key]
             debug(f'ProtocolService.exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
             debug(f'ProtocolService.exposed_find_value - Incoming connection from {client}.')
-            return value, stored_time
+            return (value, stored_time), self.lamport
         except KeyError:
             debug(f'ProtocolService.exposed_find_value - Value not founded.')
             debug(f'ProtocolService.exposed_find_value - Incoming connection from {client}.')
-            return None
+            return None, self.lamport
 
     def update_contact(self, contact: Contact):
         debug(f'ProtocolService.update_contact - Updating contact: {contact}.')
