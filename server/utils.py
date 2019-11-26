@@ -87,6 +87,10 @@ def get_hash(elem: str) -> int:
     return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
+def get_id(elem: str) -> int:
+    return get_hash(f'{elem[0]}:{elem[1]}')
+
+
 def try_function(times=1, sleep_time=0):
     def decorator(function):
         def inner(*args, **kwargs):
