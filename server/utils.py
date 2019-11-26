@@ -3,6 +3,8 @@ from hashlib import sha1
 from logging import debug, error
 from threading import Semaphore, Thread
 from time import sleep
+from rpyc.core.stream import SocketStream
+from rpyc.utils.factory import connect_stream
 from .contact import Contact
 
 
@@ -107,3 +109,8 @@ def try_function(times=1, sleep_time=0):
             return False, None
         return inner
     return decorator
+
+
+def connect(host, port, service=VoidService, config={}, ipv6=False, keepalive=False, timeout=3):
+    s = SocketStream.connect(host, port, ipv6=ipv6, keepalive=keepalive, timeout=timeout)
+    return connect_stream(s, service, config)
