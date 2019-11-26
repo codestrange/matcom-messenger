@@ -316,7 +316,7 @@ class KademliaService(ProtocolService):
                             debug(f'KademliaService.exposed_connect_to_network - Establishing connection with {ip}:{port}')
                             conn = connect(ip, port)
                             debug(f'KademliaService.exposed_connect_to_network - Pinging to {ip}:{port}')
-                            result = conn.root.ping(self.my_contact.to_json(), self.lamport)
+                            result, _ = conn.root.ping(self.my_contact.to_json(), self.lamport)
                             if result:
                                 contact = Contact.from_json(result)
                             else:
