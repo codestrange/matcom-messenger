@@ -203,6 +203,12 @@ class KademliaService(ProtocolService):
         top_contacts = KContactSortedArray(self.k, key)
         debug('KademliaService.exposed_client_find_value - Starting the semaphore for the queue')
         queue_lock = Semaphore()
+        debug(f'KademliaService.exposed_client_find_value - Insert self contact: {self.my_contact} to the queue')
+        queue.put(self.my_contact)
+        debug(f'KademliaService.exposed_client_find_value - Insert self contact: {self.my_contact} to the visited nodes set')
+        visited.add(self.my_contact)
+        debug(f'KademliaService.exposed_client_find_value - Insert self contact: {self.my_contact} to the KClosestNode array')
+        top_contacts.push(self.my_contact)
         last_value = [None, -1]
         debug('KademliaService.exposed_client_find_value - Starting the semaphore for the last value')
         last_value_lock = Semaphore()
