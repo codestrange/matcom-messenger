@@ -7,7 +7,6 @@ from rpyc import connect, Connection, discover, Service
 from rpyc.utils.factory import DiscoveryError
 from .bucket_table import BucketTable
 from .contact import Contact
-from .data import Data
 from .utils import connect, KContactSortedArray, ThreadManager, try_function
 
 
@@ -17,7 +16,8 @@ class KademliaService(Service):
         debug(f'KademliaService.exposed_init - Executing the init with the k: {k},b: {b} and a: {a}')
         self.a = a
         self.is_started_node = False
-        self.data = Data()
+        self.data = {}
+        self.data_lock = Semaphore()
         self.lamport = 0
         self.lamport_lock = Semaphore()
         self.k = k
@@ -61,15 +61,15 @@ class KademliaService(Service):
         self.update_contact(client)
         try:
             debug(f'KademliaService.exposed_store - Acquire lock for data')
-            self.data.lock.acquire()
+            self.data_lock.acquire()
             actual_value, actual_time = self.data[key]
-            self.data.lock.release()
+            self.data_lock.release()
             debug(f'KademliaService.exposed_store - Release lock for data')
         except KeyError:
             actual_value, actual_time = (value, store_time)
-        self.data.lock.acquire()
+        self.data_lock.acquire()
         self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
-        self.data.lock.release()
+        self.data_lock.release()
         debug(f'KademliaService.exposed_store - End of connection from {client}.')
         return True, self.lamport
 
@@ -458,14 +458,14 @@ class KademliaService(Service):
             debug(f'KademliaService.update_values - No time for update')
             return
         debug(f'KademliaService.update_values - Acquire lock for data')
-        self.data.lock.acquire()
+        self.data_lock.acquire()
         debug(f'KademliaService.update_values - Copying data for temporal list')
         temp = []
         for key in self.data:
             temp.append((key, self.data[key]))
         debug(f'KademliaService.update_values - Clear data')
         self.data.clear()
-        self.data.lock.release()
+        self.data_lock.release()
         debug(f'KademliaService.update_values - Release lock for data')
         success = False
         for i in temp:
