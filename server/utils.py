@@ -87,7 +87,7 @@ def get_hash(elem: str) -> int:
     return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
-def try_function(times=3, sleep_time=0):
+def try_function(times=1, sleep_time=0):
     def decorator(function):
         def inner(*args, **kwargs):
             count = 0
