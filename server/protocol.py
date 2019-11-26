@@ -141,7 +141,6 @@ class ProtocolService(Service):
         connection = self.connect(contact)
         result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
         self.update_lamport(peer_time)
-        connection.close()
         return result
 
     @try_function()
@@ -150,7 +149,6 @@ class ProtocolService(Service):
         connection = self.connect(contact)
         result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
         self.update_lamport(peer_time)
-        connection.close()
         return result
 
     @try_function()
@@ -159,7 +157,6 @@ class ProtocolService(Service):
         connection = self.connect(contact)
         result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
         self.update_lamport(peer_time)
-        connection.close()
         return result
 
     @try_function()
@@ -168,5 +165,4 @@ class ProtocolService(Service):
         connection = self.connect(contact)
         result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
         self.update_lamport(peer_time)
-        connection.close()
         return result
