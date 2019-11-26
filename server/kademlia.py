@@ -56,10 +56,12 @@ class KademliaService(ProtocolService):
         manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
+        time = self.lamport
+        debug(f'KademliaService.exposed_client_store - Time for store: {time}')
         debug(f'KademliaService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
         for contact in top_contacts:
             debug(f'KademliaService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
-            result, _ = self.store_to(contact, key, value, self.lamport)
+            result, _ = self.store_to(contact, key, value, time)
             if not result:
                 error(f'KademliaService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
             success = success or result
