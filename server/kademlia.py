@@ -35,6 +35,12 @@ class KademliaService(ProtocolService):
         top_contacts = KContactSortedArray(self.k, key)
         debug('KademliaService.exposed_client_store - Starting the semaphore for the queue')
         queue_lock = Semaphore()
+        debug(f'KademliaService.exposed_client_store - Insert self contact: {self.my_contact} to the queue')
+        queue.put(self.my_contact)
+        debug(f'KademliaService.exposed_client_store - Insert self contact: {self.my_contact} to the visited nodes set')
+        visited.add(self.my_contact)
+        debug(f'KademliaService.exposed_client_store - Insert self contact: {self.my_contact} to the KClosestNode array')
+        top_contacts.push(self.my_contact)
         debug(f'KademliaService.exposed_client_store - Starting the iteration on contacts more closes to key: {key}')
         for contact in self.table.get_closest_buckets(key):
             debug(f'KademliaService.exposed_client_store - Insert the contact: {contact} to the queue')
