@@ -1,9 +1,9 @@
 from logging import debug, error
 from threading import Semaphore
-from rpyc import connect, Connection, Service
+from rpyc import Connection, Service
 from .bucket_table import BucketTable
 from .contact import Contact
-from .utils import try_function
+from .utils import connect, try_function
 
 
 class ProtocolService(Service):
@@ -130,7 +130,7 @@ class ProtocolService(Service):
     def connect(self, contact: Contact) -> Connection:
         debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
         self.update_lamport()
-        connection = connect(contact.ip, str(contact.port), config={'sync_request_timeout': 1})
+        connection = connect(contact.ip, str(contact.port), timeout=0.5)
         connection.ping()
         debug(f'ProtocolService.Protocol.connect - Connection with contact: {contact} stablished.')
         return connection
