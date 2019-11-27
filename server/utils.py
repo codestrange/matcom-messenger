@@ -1,17 +1,20 @@
 from bisect import bisect_left
 from hashlib import sha1
-from logging import debug
+from logging import debug, error
 from threading import Semaphore, Thread
 from time import sleep
+from rpyc.core.service import VoidService
+from rpyc.core.stream import SocketStream
+from rpyc.utils.factory import connect_stream
 from .contact import Contact
 
 
 class ThreadManager:
-    def __init__(self, alpha, start_cond, start_point, args=(), kwargs={}, time_sleep=1):
+    def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=0.1):
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args
-        self.kwargs = kwargs
+        self.kwargs = kwargs if not kwargs is None else {}
         self._cont = 0
         self._semcont = Semaphore()
         self.time_sleep = time_sleep
@@ -60,17 +63,17 @@ class ThreadManager:
 
 
 class KContactSortedArray:
-    def __init__(self, k:int, reference:int):
+    def __init__(self, k: int, reference: int):
         self.k = k
         self.values = []
         self.reference = reference
         self.semaphore = Semaphore()
 
-    def push(self, contact:Contact) -> bool:
+    def push(self, contact: Contact) -> bool:
         self.semaphore.acquire()
         difference = self.reference ^ contact.id
         index = bisect_left([d for d, _ in self.values], difference)
-        if not self.values or self.values[index][0] != difference:
+        if not self.values or index >= len(self.values) or self.values[index][0] != difference:
             self.values.insert(index, (difference, contact))
             while len(self.values) > self.k:
                 self.values.pop()
@@ -87,7 +90,11 @@ def get_hash(elem: str) -> int:
     return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
-def try_function(times=3, sleep_time=0):
+def get_id(elem: str) -> int:
+    return get_hash(f'{elem[0]}:{elem[1]}')
+
+
+def try_function(times=1, sleep_time=0):
     def decorator(function):
         def inner(*args, **kwargs):
             count = 0
@@ -95,10 +102,16 @@ def try_function(times=3, sleep_time=0):
                 try:
                     result = function(*args, **kwargs)
                     return True, result
-                except:
+                except Exception as e:
                     count += 1
+                    error(f'try_function - {e}')
                 if sleep_time:
                     sleep(sleep_time)
             return False, None
         return inner
     return decorator
+
+
+def connect(host, port, service=VoidService, config={}, ipv6=False, keepalive=False, timeout=3):
+    s = SocketStream.connect(host, port, ipv6=ipv6, keepalive=keepalive, timeout=timeout)
+    return connect_stream(s, service, config)
