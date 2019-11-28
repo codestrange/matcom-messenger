@@ -2,8 +2,9 @@ from json import dumps, loads
 from threading import Semaphore
 from .utils import get_hash
 
+
 class UserData:
-    def __init__(self, name: str, phone: str, password: str, creation_time: int, nonce=0):
+    def __init__(self, name: str, phone: str, password: str, creation_time: int, nonce: int = 0):
         self.__name = name
         self.__name_time = creation_time
         self.__sem_name = Semaphore()
@@ -17,7 +18,6 @@ class UserData:
         self.__password = get_hash(password) if not isinstance(password, int) else password
         self.__password_time = creation_time
         self.__sem_password = Semaphore()
-        
 
     def get_name(self):
         self.__sem_name.acquire()
@@ -66,7 +66,8 @@ class UserData:
         result = False
         if ntime > self.__password_time:
             result = True
-            self.__password, self.__password_time = get_hash(npassword) if not isinstance(npassword, int) else npassword, ntime
+            self.__password = get_hash(npassword) if not isinstance(npassword, int) else npassword
+            self.__password_time = ntime
         self.__sem_password.release()
         return result
 
