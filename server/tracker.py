@@ -87,7 +87,7 @@ class TrackerService(KademliaService):
         if port_random:
             port = randint(inf_port, sup_port)
         if log_to_file:
-            basicConfig(filename=f'system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
+            basicConfig(filename=f'logs/system_{port}.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
         else:
             basicConfig(format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
         debug(f'TrackerService.start - Generated port: {port}')
