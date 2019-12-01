@@ -77,7 +77,87 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.exposed_store - End of connection from {client}.')
         return True, self.lamport
 
-    def exposed_client_store(self, key: int, value: str, use_self_time: bool = True) -> bool:
+    def exposed_add_group(self, client: Contact, client_lamport: int, key: int, group: int, time: int) -> bool:
+        debug(f'TrackerService.exposed_add_group - Trying to add group in key: {key} with group: {group}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_add_group - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_add_group - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_add_group - {key} in data')
+            debug(f'TrackerService.exposed_add_group - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_add_group - Updating value')
+            self.data[key].add_group(group, time)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_add_group - Release lock for data')
+        debug(f'TrackerService.exposed_add_group - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_remove_group(self, client: Contact, client_lamport: int, key: int, group: int, time: int) -> bool:
+        debug(f'TrackerService.exposed_remove_group - Trying to add group in key: {key} with group: {group}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_remove_group - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_remove_group - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_remove_group - {key} in data')
+            debug(f'TrackerService.exposed_remove_group - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_remove_group - Updating value')
+            self.data[key].remove_group(group, time)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_remove_group - Release lock for data')
+        debug(f'TrackerService.exposed_remove_group - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_add_member(self, client: Contact, client_lamport: int, key: int, member: int, time: int) -> bool:
+        debug(f'TrackerService.exposed_add_member - Trying to add member in key: {key} with member: {member}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_add_member - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_add_member - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_add_member - {key} in data')
+            debug(f'TrackerService.exposed_add_member - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_add_member - Updating value')
+            self.data[key].add_member(member, time)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_add_member - Release lock for data')
+        debug(f'TrackerService.exposed_add_member - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_remove_member(self, client: Contact, client_lamport: int, key: int, member: int, time: int) -> bool:
+        debug(f'TrackerService.exposed_remove_member - Trying to add member in key: {key} with member: {member}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_remove_member - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_remove_member - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_remove_member - {key} in data')
+            debug(f'TrackerService.exposed_remove_member - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_remove_member - Updating value')
+            self.data[key].remove_member(member, time)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_remove_member - Release lock for data')
+        debug(f'TrackerService.exposed_remove_member - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_client_store(self, key: int, value: str, use_self_time: bool = True, option: int = 0) -> bool:
         if not self.is_initialized:
             error(f'TrackerService.exposed_client_store - Instance not initialized')
             return None
@@ -110,16 +190,33 @@ class TrackerService(KademliaService):
         manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
-        value = UserData.from_json(value)
-        if use_self_time:
-            value.set_times(self.lamport)
+        if option == 0:
+            value = UserData.from_json(value)
+            if use_self_time:
+                value.set_times(self.lamport)
         debug(f'TrackerService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
         for contact in top_contacts:
-            debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
-            result, _ = self.store_to(contact, key, value.to_json())
-            if not result:
-                error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
-            success = success or result
+            if option == 0:
+                debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
+                result, _ = self.store_to(contact, key, value.to_json())
+                if not result:
+                    error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
+                success = success or result
+            else:
+                function = None
+                if option == 1:
+                    function = self.add_group_to
+                elif option == 2:
+                    function = self.remove_group_to
+                elif option == 3:
+                    function = self.add_member_to
+                elif option == 4:
+                    function = self.remove_member_to
+                debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}, with option: {option}')
+                result, _ = function(contact, key, value, self.lamport)
+                if not result:
+                    error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
+                success = success or result
         debug(f'TrackerService.exposed_client_store - Finish method with result: {success}')
         return success
 
@@ -260,9 +357,41 @@ class TrackerService(KademliaService):
 
     @try_function()
     def store_to(self, contact: Contact, key: int, value: str) -> bool:
-        debug(f'KademliaService.store_to - Trying store to contact: {contact} for key: {key}.')
+        debug(f'TrackerService.store_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def add_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
+        debug(f'TrackerService.add_group_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.add_group(self.my_contact.to_json(), self.lamport, key, value, time)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def remove_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
+        debug(f'TrackerService.remove_group_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.remove_group(self.my_contact.to_json(), self.lamport, key, value, time)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def add_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
+        debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.add_member(self.my_contact.to_json(), self.lamport, key, value, time)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def remove_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
+        debug(f'TrackerService.remove_member_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, value, time)
         self.update_lamport(peer_time)
         return result
 
