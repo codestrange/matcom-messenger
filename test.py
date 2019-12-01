@@ -29,7 +29,7 @@ def test2():
     conn = rpyc.connect('localhost', 8081)
     _, name_time = leynier.get_name()
     leynier.set_name('carlos', name_time + 1)
-    print(conn.root.client_store(leynier.get_id(), leynier.to_json()))
+    print(conn.root.client_store(leynier.get_id(), 123123123123, True, 1))
     conn.root.client_data()
 
 
@@ -38,11 +38,17 @@ def test3():
     print(conn.root.client_find_value(leynier.get_id()))
     conn.root.client_data()
 
+def test4():
+    conn = rpyc.connect('localhost', 8081)
+    _, name_time = leynier.get_name()
+    leynier.set_name('carlos', name_time + 1)
+    print(conn.root.client_store(leynier.get_id(), 123123123123, True, 2))
+    conn.root.client_data()
 
 if __name__ == "__main__":
     print('Running test ...')
     leynier = UserData('leynier', '+5353478301', '1234')
-    tests = [test1, test2, test3]
+    tests = [test1, test2, test3, test4]
     for test in tests:
         input(f'Press key for run the test: {test.__name__} ')
         print(f'Result: ', end='')
