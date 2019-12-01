@@ -15,7 +15,7 @@ class UserData:
         self.__sem_members = Semaphore()
         self.__groups = set()
         self.__sem_groups = Semaphore()
-        self.__password = get_hash(password) if not isinstance(password, int) else password
+        self.__password = get_hash(password) if isinstance(password, str) else password
         self.__password_time = creation_time
         self.__sem_password = Semaphore()
 
