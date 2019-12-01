@@ -63,11 +63,11 @@ class KademliaService(Service):
             debug(f'KademliaService.exposed_store - Acquire lock for data')
             self.data_lock.acquire()
             actual_value, actual_time = self.data[key]
-            debug(f'KademliaService.exposed_store - Release lock for data')
         except KeyError:
             actual_value, actual_time = (value, store_time)
         finally:
             self.data_lock.release()
+            debug(f'KademliaService.exposed_store - Release lock for data')
         self.data_lock.acquire()
         self.data[key] = (value, store_time) if store_time > actual_time else (actual_value, actual_time)
         self.data_lock.release()
@@ -500,6 +500,7 @@ class KademliaService(Service):
         self.lamport_lock.acquire()
         self.lamport = max(client_lamport, self.lamport + 1)
         self.lamport_lock.release()
+        self.update_values()
         debug(f'KademliaService.update_lamport - Time updated.')
 
     def connect(self, contact: Contact) -> Connection:
