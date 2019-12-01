@@ -10,7 +10,7 @@ class UserData:
         self.__sem_name = Semaphore()
         self.__nonce = nonce
         self.__phone = phone
-        self.__id = get_hash(':'.join([self.__phone, str(self.__nonce)]))
+        self.__id = get_hash(':'.join([self.__phone, str(self.__nonce)])) if phone and nonce else None
         self.__members = set()
         self.__sem_members = Semaphore()
         self.__groups = set()
@@ -76,9 +76,6 @@ class UserData:
 
     def get_phone(self):
         return self.__phone
-
-    def get_id(self):
-        return self.__id
 
     def set_name(self, nname: str, ntime: int):
         self.__sem_name.acquire()
