@@ -4,9 +4,9 @@ from .utils import get_hash
 
 
 class UserData:
-    def __init__(self, name: str = None, phone: str = None, password: str = None, creation_time: int = -1, nonce: int = 0):
+    def __init__(self, name: str = None, phone: str = None, password: str = None, creation_time: int = None, nonce: int = 0):
         self.__name = name
-        self.__name_time = creation_time
+        self.__name_time = -1 if creation_time is None else creation_time
         self.__sem_name = Semaphore()
         self.__nonce = nonce
         self.__phone = phone
@@ -16,7 +16,7 @@ class UserData:
         self.__groups = set()
         self.__sem_groups = Semaphore()
         self.__password = get_hash(password) if isinstance(password, str) else password
-        self.__password_time = creation_time
+        self.__password_time = -1 if creation_time is None else creation_time
         self.__sem_password = Semaphore()
 
     def __str__(self):
@@ -126,8 +126,10 @@ class UserData:
         self.__id = new_user_data.__id
         self.__nonce = new_user_data.__nonce
         self.__phone = new_user_data.__phone
-        self.set_name(*new_user_data.get_name())
-        self.set_password(*new_user_data.get_password())
+        name, name_time = new_user_data.get_name()
+        self.set_name(name, name_time)
+        password, password_time = new_user_data.get_password()
+        self.set_password(password, password_time)
 
     def set_times(self, time: int):
         self.__sem_name.acquire()
