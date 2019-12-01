@@ -121,6 +121,24 @@ class TrackerService(KademliaService):
             success = success or result
         debug(f'TrackerService.exposed_client_store - Finish method with result: {success}')
         return success
+
+    def threaded_update_values(self, force):
+        debug(f'TrackerService.update_values - Acquire lock for data')
+        self.data_lock.acquire()
+        debug(f'TrackerService.update_values - Copying data for temporal list')
+        temp = []
+        for key in self.data:
+            temp.append((key, self.data[key]))
+        debug(f'TrackerService.update_values - Clear data')
+        self.data.clear()
+        self.data_lock.release()
+        debug(f'TrackerService.update_values - Release lock for data')
+        success = False
+        for i in temp:
+            debug(f'TrackerService.update_values - Call client store with key: {i[0]}, value: {i[1]}')
+            success = success or self.exposed_client_store(i[0], i[1], False)
+        debug(f'TrackerService.update_values - Finish with result: {success}')
+
     @staticmethod
     def __start_register():
         while True:
