@@ -161,15 +161,15 @@ class UserData:
         user.set_name(data['name'], data['name_time'])
         user.set_password(data['password'], data['password_time'])
         for group in data['groups']:
-            user.add_group(group, data['groups_time'][group])
+            user.add_group(group, data['groups_time'][str(group)])
         for member in data['members']:
-            user.add_member(member, data['members_time'][member])
+            user.add_member(member, data['members_time'][str(member)])
         for group in data['non_groups']:
             user.__non_groups.add(group)
-            user.__groups_time = data['groups_time'][group]
+            user.__groups_time[group] = data['groups_time'][str(group)]
         for member in data['non_members']:
             user.__non_members.add(member)
-            user.__members_time = data['members_time'][member]
+            user.__members_time[member] = data['members_time'][str(member)]
         assert(user.__id == data['id'])
         return user
 
