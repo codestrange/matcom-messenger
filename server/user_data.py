@@ -115,7 +115,7 @@ class UserData:
         data = loads(data)
         user = UserData(data['name'], data['phone'], data['password'], -1, nonce=data['nonce'])
         user.set_name(data['name'], data['name_time'])
-        user.set_name(data['password'], data['password_time'])
+        user.set_password(data['password'], data['password_time'])
         for group in data['groups']:
             user.add_group(group)
         for member in data['members']:
