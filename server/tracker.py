@@ -200,7 +200,7 @@ class TrackerService(KademliaService):
             return None
         for contact in top_contacts:
             debug(f'TrackerService.exposed_client_find_value - Storing key: {key} with value: {value} in contact: {contact}')
-            result, _ = self.store_to(contact, key, value)
+            result, _ = self.store_to(contact, key, value.to_json())
             if not result:
                 error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
         debug(f'TrackerService.exposed_client_store - Finish method with value result: {value}')
