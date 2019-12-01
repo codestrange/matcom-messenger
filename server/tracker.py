@@ -367,7 +367,7 @@ class TrackerService(KademliaService):
     def add_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
         debug(f'TrackerService.add_group_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        result, peer_time = connection.root.add_group(self.my_contact.to_json(), self.lamport, key, value, time)
+        result, peer_time = connection.root.add_group(self.my_contact.to_json(), self.lamport, key, group, time)
         self.update_lamport(peer_time)
         return result
 
@@ -375,7 +375,7 @@ class TrackerService(KademliaService):
     def remove_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
         debug(f'TrackerService.remove_group_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        result, peer_time = connection.root.remove_group(self.my_contact.to_json(), self.lamport, key, value, time)
+        result, peer_time = connection.root.remove_group(self.my_contact.to_json(), self.lamport, key, group, time)
         self.update_lamport(peer_time)
         return result
 
@@ -383,7 +383,7 @@ class TrackerService(KademliaService):
     def add_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
         debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        result, peer_time = connection.root.add_member(self.my_contact.to_json(), self.lamport, key, value, time)
+        result, peer_time = connection.root.add_member(self.my_contact.to_json(), self.lamport, key, member, time)
         self.update_lamport(peer_time)
         return result
 
@@ -391,7 +391,7 @@ class TrackerService(KademliaService):
     def remove_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
         debug(f'TrackerService.remove_member_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
-        result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, value, time)
+        result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, member, time)
         self.update_lamport(peer_time)
         return result
 
