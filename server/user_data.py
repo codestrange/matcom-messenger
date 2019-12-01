@@ -161,9 +161,15 @@ class UserData:
         user.set_name(data['name'], data['name_time'])
         user.set_password(data['password'], data['password_time'])
         for group in data['groups']:
-            user.add_group(group)
+            user.add_group(group, data['groups_time'][group])
         for member in data['members']:
-            user.add_member(member)
+            user.add_member(member, data['members_time'][member])
+        for group in data['non_groups']:
+            user.__non_groups.add(group)
+            user.__groups_time = data['groups_time'][group]
+        for member in data['non_members']:
+            user.__non_members.add(member)
+            user.__members_time = data['members_time'][member]
         assert(user.__id == data['id'])
         return user
 
@@ -192,10 +198,10 @@ class UserData:
                 if self.__members_time[member] < new_user_data.__members_time[member]:
                     self.__members.remove(member)
                     self.__non_members.add(member)
-                    self.__non_members_time[member] = new_user_data.__members_time[member]
+                    self.__members_time[member] = new_user_data.__members_time[member]
             else:
                 self.__non_members.add(member)
-                self.__non_members_time[member] = new_user_data.__members_time[member]
+                self.__members_time[member] = new_user_data.__members_time[member]
         self.__sem_members.release()
         self.__sem_groups.acquire()
         for group in new_user_data.__groups:
@@ -216,10 +222,10 @@ class UserData:
                 if self.__groups_time[group] < new_user_data.__groups_time[group]:
                     self.__groups.remove(group)
                     self.__non_groups.add(group)
-                    self.__non_groups_time[group] = new_user_data.__groups_time[group]
+                    self.__groups_time[group] = new_user_data.__groups_time[group]
             else:
                 self.__non_groups.add(group)
-                self.__non_groups_time[group] = new_user_data.__groups_time[group]
+                self.__groups_time[group] = new_user_data.__groups_time[group]
         self.__sem_groups.release()
 
     def set_times(self, time: int):
