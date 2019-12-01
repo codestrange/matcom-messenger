@@ -19,10 +19,10 @@ class UserData:
         self.__password_time = creation_time
         self.__sem_password = Semaphore()
 
-    def __repr__(self):
-        return str(self)
-    
     def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
         self.__sem_name.acquire()
         self.__sem_members.acquire()
         self.__sem_groups.acquire()
