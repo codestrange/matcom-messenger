@@ -4,7 +4,7 @@ from .utils import get_hash
 
 
 class UserData:
-    def __init__(self, name: str, phone: str, password: str, creation_time: int, nonce: int = 0):
+    def __init__(self, name: str = None, phone: str = None, password: str = None, creation_time: int = -1, nonce: int = 0):
         self.__name = name
         self.__name_time = creation_time
         self.__sem_name = Semaphore()
@@ -21,13 +21,13 @@ class UserData:
 
     def get_name(self):
         self.__sem_name.acquire()
-        result = (self.__name, self.__name_time)
+        result = self.__name, self.__name_time
         self.__sem_name.release()
         return result
 
-    def check_password(self, password: str):
+    def get_password(self):
         self.__sem_password.acquire()
-        result = get_hash(password) == self.__password
+        result = self.__password, self.__password_time
         self.__sem_password.release()
         return result
 
@@ -115,3 +115,10 @@ class UserData:
             user.add_member(member)
         assert(user.__id == data['id'])
         return user
+
+    def update(self, new_user_data):
+        self.__id = new_user_data.__id
+        self.__nonce = new_user_data.__nonce
+        self.__phone = new_user_data.__phone
+        self.set_name(*new_user_data.get_name())
+        self.set_password(*new_user_data.get_password())
