@@ -116,7 +116,7 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
         for contact in top_contacts:
             debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
-            result, _ = self.store_to(contact, key, value)
+            result, _ = self.store_to(contact, key, value.to_json())
             if not result:
                 error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
             success = success or result
