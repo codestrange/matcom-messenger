@@ -1,4 +1,5 @@
 from json import dumps, loads
+from logging import debug
 from threading import Semaphore
 from .utils import get_hash
 
@@ -132,9 +133,15 @@ class UserData:
         self.set_password(password, password_time)
 
     def set_times(self, time: int):
+        debug(f'UserData - Start set times')
+        debug(f'UserData - Acquire lock for name')
         self.__sem_name.acquire()
         self.__name_time = time
         self.__sem_name.release()
+        debug(f'UserData - Release lock for name')
+        debug(f'UserData - Acquire lock for password')
         self.__sem_password.acquire()
         self.__password_time = time
         self.__sem_password.release()
+        debug(f'UserData - Release lock for password')
+        debug(f'UserData - End set times')
