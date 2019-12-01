@@ -44,6 +44,9 @@ class UserData:
         self.__sem_password.release()
         return result
 
+    def get_id(self):
+        return self.__id
+
     def get_name(self):
         self.__sem_name.acquire()
         result = self.__name, self.__name_time
