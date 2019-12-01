@@ -75,6 +75,52 @@ class TrackerService(KademliaService):
             debug(f'TrackerService.exposed_store - Release lock for data')
         debug(f'TrackerService.exposed_store - End of connection from {client}.')
         return True, self.lamport
+
+    def exposed_client_store(self, key: int, value: str, use_self_time: bool = True) -> bool:
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_client_store - Instance not initialized')
+            return None
+        debug('TrackerService.exposed_client_store - Starting the queue')
+        queue = Queue()
+        debug('TrackerService.exposed_client_store - Starting the visited nodes set')
+        visited = set()
+        debug('TrackerService.exposed_client_store - Starting the KClosestNode array')
+        top_contacts = KContactSortedArray(self.k, key)
+        debug('TrackerService.exposed_client_store - Starting the semaphore for the queue')
+        queue_lock = Semaphore()
+        debug(f'TrackerService.exposed_client_store - Insert self contact: {self.my_contact} to the queue')
+        queue.put(self.my_contact)
+        debug(f'TrackerService.exposed_client_store - Insert self contact: {self.my_contact} to the visited nodes set')
+        visited.add(self.my_contact)
+        debug(f'TrackerService.exposed_client_store - Insert self contact: {self.my_contact} to the KClosestNode array')
+        top_contacts.push(self.my_contact)
+        debug(f'TrackerService.exposed_client_store - Starting the iteration on contacts more closes to key: {key}')
+        for contact in self.table.get_closest_buckets(key):
+            debug(f'TrackerService.exposed_client_store - Insert the contact: {contact} to the queue')
+            queue.put(contact)
+            debug(f'TrackerService.exposed_client_store - Insert the contact: {contact} to the visited nodes set')
+            visited.add(contact)
+            debug(f'TrackerService.exposed_client_store - Insert the contact: {contact} to the KClosestNode array')
+            top_contacts.push(contact)
+            if queue.qsize() >= self.a:
+                debug('TrackerService.exposed_client_store -  Initial alpha nodes completed')
+                break
+        debug('TrackerService.exposed_client_store - Starting the ThreadManager')
+        manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
+        manager.start()
+        success = False
+        value = UserData.from_json(value)
+        if use_self_time:
+            value.set_times(self.lamport)
+        debug(f'TrackerService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
+        for contact in top_contacts:
+            debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
+            result, _ = self.store_to(contact, key, value)
+            if not result:
+                error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
+            success = success or result
+        debug(f'TrackerService.exposed_client_store - Finish method with result: {success}')
+        return success
     @staticmethod
     def __start_register():
         while True:
