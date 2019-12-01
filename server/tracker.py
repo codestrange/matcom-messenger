@@ -6,6 +6,7 @@ from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_DGRAM
 from rpyc import  connect, discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
+from .user_data import UserData
 from .utils import get_hash
 from .kademlia import Contact, KademliaService
 
@@ -47,6 +48,33 @@ class TrackerService(KademliaService):
         with open(f'data_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
             file.write(result)
 
+    def exposed_store(self, client: Contact, client_lamport: int, key: int, value: str) -> bool:
+        debug(f'TrackerService.exposed_store - Trying to store value in key: {key} with value: {value}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_store - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        value = UserData.from_json(value)
+        debug(f'TrackerService.exposed_store - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_store - {key} in data')
+            debug(f'TrackerService.exposed_store - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_store - Updating value')
+            self.data[key].update(value)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_store - Release lock for data')
+        else:
+            debug(f'TrackerService.exposed_store - Not {key} in data')
+            debug(f'TrackerService.exposed_store - Acquire lock for data')
+            self.data_lock.acquire()
+            self.data[key] = value
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_store - Release lock for data')
+        debug(f'TrackerService.exposed_store - End of connection from {client}.')
+        return True, self.lamport
     @staticmethod
     def __start_register():
         while True:
