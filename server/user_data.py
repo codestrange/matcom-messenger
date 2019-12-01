@@ -19,6 +19,31 @@ class UserData:
         self.__password_time = creation_time
         self.__sem_password = Semaphore()
 
+    def __repr__(self):
+        return str(self)
+    
+    def __str__(self):
+        self.__sem_name.acquire()
+        self.__sem_members.acquire()
+        self.__sem_groups.acquire()
+        self.__sem_password.acquire()
+        result = dumps({
+            'name': self.__name,
+            'name_time': self.__name_time,
+            'nonce': self.__nonce,
+            'password': self.__password,
+            'password_time': self.__password_time,
+            'members': list(self.__members),
+            'groups': list(self.__groups),
+            'phone': self.__phone,
+            'id': self.__id,
+        })
+        self.__sem_name.release()
+        self.__sem_members.release()
+        self.__sem_groups.release()
+        self.__sem_password.release()
+        return result
+
     def get_name(self):
         self.__sem_name.acquire()
         result = self.__name, self.__name_time
@@ -82,26 +107,7 @@ class UserData:
         self.__sem_members.release()
 
     def to_json(self):
-        self.__sem_name.acquire()
-        self.__sem_members.acquire()
-        self.__sem_groups.acquire()
-        self.__sem_password.acquire()
-        result = dumps({
-            'name': self.__name,
-            'name_time': self.__name_time,
-            'nonce': self.__nonce,
-            'password': self.__password,
-            'password_time': self.__password_time,
-            'members': list(self.__members),
-            'groups': list(self.__groups),
-            'phone': self.__phone,
-            'id': self.__id,
-        })
-        self.__sem_name.release()
-        self.__sem_members.release()
-        self.__sem_groups.release()
-        self.__sem_password.release()
-        return result
+        return str(self)
 
     @staticmethod
     def from_json(data: str):
