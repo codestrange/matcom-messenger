@@ -105,11 +105,11 @@ class KademliaService(Service):
         try:
             value, stored_time = self.data[key]
             debug(f'KademliaService.exposed_find_value - Replaying with value: {value} and value_time: {stored_time}.')
-            debug(f'KademliaService.exposed_find_value - Incoming connection from {client}.')
+            debug(f'KademliaService.exposed_find_value - End connection from {client}.')
             return (value, stored_time), self.lamport
         except KeyError:
             debug(f'KademliaService.exposed_find_value - Value not founded.')
-            debug(f'KademliaService.exposed_find_value - Incoming connection from {client}.')
+            debug(f'KademliaService.exposed_find_value - End connection from {client}.')
             return None, self.lamport
 
     def exposed_client_store(self, key: int, value: str, store_time: int = None) -> bool:

@@ -1,12 +1,14 @@
 from logging import basicConfig, debug, error, info, DEBUG
+from queue import Empty, Queue
 from random import randint
-from threading import Thread
+from threading import Thread, Semaphore
 from time import sleep
 from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_DGRAM
 from rpyc import  connect, discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
-from .utils import get_hash
+from .utils import get_hash, KContactSortedArray, ThreadManager, try_function
+from .user_data import UserData
 from .kademlia import Contact, KademliaService
 
 
@@ -155,3 +157,129 @@ class TrackerService(KademliaService):
             error(f'TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered. Exception: {e}')
             ip = gethostbyname(gethostname()) # This should never happen if
         return ip
+        
+    def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> tuple:
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_find_value - Instance not initialized')
+            return None, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_find_value - Incoming connection from {client}.')
+        debug(f'TrackerService.exposed_find_value - Asking for key: {key}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        try:
+            value = self.data[key]
+            debug(f'TrackerService.exposed_find_value - Replaying with value: {value}.')
+            debug(f'TrackerService.exposed_find_value - End connection from {client}.')
+            return value.to_json(), self.lamport
+        except KeyError:
+            debug(f'TrackerService.exposed_find_value - Value not founded.')
+            debug(f'TrackerService.exposed_find_value - End connection from {client}.')
+            return None, self.lamport
+
+    def exposed_client_find_value(self, key: int) -> object:
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_client_find_value - Instance not initialized')
+            return None
+        debug('TrackerService.exposed_client_find_value - Starting the queue')
+        queue = Queue()
+        debug('TrackerService.exposed_client_find_value - Starting the visited nodes set')
+        visited = set()
+        debug('TrackerService.exposed_client_find_value - Starting the KClosestNode array')
+        top_contacts = KContactSortedArray(self.k, key)
+        debug('TrackerService.exposed_client_find_value - Starting the semaphore for the queue')
+        queue_lock = Semaphore()
+        debug(f'TrackerService.exposed_client_find_value - Insert self contact: {self.my_contact} to the queue')
+        queue.put(self.my_contact)
+        debug(f'TrackerService.exposed_client_find_value - Insert self contact: {self.my_contact} to the visited nodes set')
+        visited.add(self.my_contact)
+        debug(f'TrackerService.exposed_client_find_value - Insert self contact: {self.my_contact} to the KClosestNode array')
+        top_contacts.push(self.my_contact)
+        last_value = UserData()
+        debug('TrackerService.exposed_client_find_value - Starting the semaphore for the last value')
+        last_value_lock = Semaphore()
+        debug(f'TrackerService.exposed_client_find_value - Starting the iteration on contacts more closes to key: {key}')
+        for contact in self.table.get_closest_buckets(key):
+            debug(f'TrackerService.exposed_client_find_value - Insert the contact: {contact} to the queue')
+            queue.put(contact)
+            debug(f'TrackerService.exposed_client_find_value - Insert the contact: {contact} to the visited nodes set')
+            visited.add(contact)
+            debug(f'TrackerService.exposed_client_find_value - Insert the contact: {contact} to the KClosestNode array')
+            top_contacts.push(contact)
+            if queue.qsize() >= self.a:
+                debug('TrackerService.exposed_client_find_value -  Initial alpha nodes completed')
+                break
+        debug('TrackerService.exposed_client_find_value - Starting the ThreadManager')
+        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock))
+        manager.start()
+        debug(f'TrackerService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
+        value = last_value
+        if value.get_name() is None:
+            return None
+        for contact in top_contacts:
+            debug(f'TrackerService.exposed_client_find_value - Storing key: {key} with value: {value} in contact: {contact}')
+            result, _ = self.store_to(contact, key, value)
+            if not result:
+                error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
+        debug(f'TrackerService.exposed_client_store - Finish method with value result: {value}')
+        return value
+
+    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore):
+        contact = None
+        try:
+            debug(f'TrackerService.find_value_lookup - Removing a contact from the queue')
+            contact = queue.get(timeout=1)
+            debug(f'TrackerService.find_value_lookup - Contact {contact} out of the queue')
+        except Empty:
+            debug(f'TrackerService.find_value_lookup - Empty queue')
+            return
+        debug(f'TrackerService.find_value_lookup - Make the find_node on the contact: {contact}')
+        result, new_contacts = self.find_node_to(contact, key)
+        if not result:
+            debug(f'TrackerService.find_value_lookup - No connection to the node: {contact} was established')
+            return
+        debug(f'TrackerService.find_value_lookup - Make the find_value on the contact: {contact}')
+        result, value = self.find_value_to(contact, key)
+        if not result:
+            debug(f'TrackerService.find_value_lookup - No connection to the node: {contact} was established')
+            return
+        debug(f'TrackerService.find_value_lookup - Update the table with contact: {contact}')
+        self.update_contact(contact)
+        debug(f'TrackerService.find_value_lookup - Cloning contacts received')
+        new_contacts = map(Contact.from_json, new_contacts)
+        value = UserData.from_json(value)
+        debug(f'TrackerService.find_value_lookup - Acquire lock for last value')
+        last_value_lock.acquire()
+        debug(f'TrackerService.find_value_lookup - Checking for update last value.')
+        debug(f'TrackerService.find_value_lookup - Update the last value')
+        last_value.update(value)
+        debug(f'TrackerService.find_value_lookup - Release lock for last value')
+        last_value_lock.release()
+        debug(f'TrackerService.find_value_lookup - Iterate by contacts')
+        for new_contact in new_contacts:
+            debug(f'TrackerService.find_value_lookup - Pinging to contact: {new_contact}')
+            if not self.ping_to(new_contact)[0]:
+                debug(f'TrackerService.find_value_lookup - The contact: {new_contact} not respond')
+                continue
+            debug(f'TrackerService.find_value_lookup - Update the table with contact: {new_contact}')
+            self.update_contact(new_contact)
+            debug(f'TrackerService.find_value_lookup - Lock the queue')
+            queue_lock.acquire()
+            if not new_contact in visited:
+                debug(f'TrackerService.find_value_lookup - The contact: {new_contact} is NOT in the queue')
+                debug(f'TrackerService.find_value_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
+                visited.add(new_contact)
+                queue_lock.release()
+                queue.put(new_contact)
+                top.push(new_contact)
+            else:
+                debug(f'TrackerService.find_value_lookup - The contact: {new_contact} is in the queue')
+                queue_lock.release()
+
+    @try_function()
+    def store_to(self, contact: Contact, key: int, value: str) -> bool:
+        debug(f'KademliaService.store_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value)
+        self.update_lamport(peer_time)
+        return result
