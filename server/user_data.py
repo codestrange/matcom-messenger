@@ -122,3 +122,11 @@ class UserData:
         self.__phone = new_user_data.__phone
         self.set_name(*new_user_data.get_name())
         self.set_password(*new_user_data.get_password())
+
+    def set_times(self, time: int):
+        self.__sem_name.acquire()
+        self.__name_time = time
+        self.__sem_name.release()
+        self.__sem_password.acquire()
+        self.__password_time = time
+        self.__sem_password.release()
