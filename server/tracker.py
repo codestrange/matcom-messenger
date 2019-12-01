@@ -39,14 +39,14 @@ class TrackerService(KademliaService):
                 result += f'Bucket: {index}\n'
                 for node in bucket:
                     result += f'{node}\n'
-        with open(f'table_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+        with open(f'logs/table_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
             file.write(result)
 
     def exposed_client_data(self):
         result = ''
         for key in self.data:
             result += f'{key}:{self.data[key]}\n'
-        with open(f'data_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
+        with open(f'logs/data_{self.my_contact.ip}_{self.my_contact.port}.log', 'w') as file:
             file.write(result)
 
     def exposed_store(self, client: Contact, client_lamport: int, key: int, value: str) -> bool:
