@@ -12,7 +12,7 @@ Existen dos entidades fundamentales en la realización del proyecto: cliente y g
 
 ### Cliente
 
-El cliente es la entidad encargada de mandar y recibir mensajes. La primera vez que un usuario se añade a la red, debe identificarse para luego adicionar contactos y crear chats. La información de las conversaciones se almacena en los clientes y no puede suceder que si el destinatario no está conectado al sistema el remitente no pueda mandar el mensaje. La comunicación debe poderse realizar en todo momento sin que se utilice un servicio diferente para el almacenamiento. Esta funcionalidad debe recaer completamente en los clientes. 
+El cliente es la entidad encargada de mandar y recibir mensajes. La primera vez que un usuario se añade a la red, debe identificarse para luego adicionar contactos y crear chats. La información de las conversaciones se almacena en los clientes y no puede suceder que si el destinatario no está conectado al sistema el remitente no pueda mandar el mensaje. La comunicación debe poderse realizar en todo momento sin que se utilice un servicio diferente para el almacenamiento. Esta funcionalidad debe recaer completamente en los clientes.
 
 La implementación de este cliente debe venir acompañada con una aplicación gráfica que permita una mejor interacción con el sistema.
 
