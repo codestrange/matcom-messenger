@@ -11,12 +11,18 @@ class Message:
     def __hash__(self):
         return self.id
 
-    def to_json(self):
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
         return dumps({
             'time': self.time,
             'sender': self.sender,
             'text': self.text
         })
+
+    def to_json(self):
+        return str(self)
     
     @staticmethod
     def from_json(data:str):
