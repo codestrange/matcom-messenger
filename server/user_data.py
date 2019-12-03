@@ -1,6 +1,7 @@
 from json import dumps, loads
 from logging import debug
 from threading import Semaphore
+from .message import Message
 from .utils import get_hash
 
 
@@ -23,6 +24,8 @@ class UserData:
         self.__password = get_hash(password) if isinstance(password, str) else password
         self.__password_time = -1 if creation_time is None else creation_time
         self.__sem_password = Semaphore()
+        self.__messages = set()
+        self.__sem_messages = Semaphore()
 
     def __str__(self):
         return self.__repr__()
@@ -32,6 +35,7 @@ class UserData:
         self.__sem_members.acquire()
         self.__sem_groups.acquire()
         self.__sem_password.acquire()
+        self.__sem_messages.acquire()
         result = dumps({
             'name': self.__name,
             'name_time': self.__name_time,
@@ -46,7 +50,9 @@ class UserData:
             'groups_time': self.__groups_time,
             'phone': self.__phone,
             'id': self.__id,
+            'messages': list(self.__messages),
         })
+        self.__sem_messages.release()
         self.__sem_name.release()
         self.__sem_members.release()
         self.__sem_groups.release()
@@ -154,6 +160,16 @@ class UserData:
     def to_json(self):
         return str(self)
 
+    def add_message(self, message:Message):
+        self.__sem_messages.acquire()
+        self.__messages.add(message)
+        self.__sem_messages.release()
+
+    def clear_messages(self):
+        self.__sem_messages.acquire()
+        self.__messages.clear()
+        self.__sem_messages.release()
+
     @staticmethod
     def from_json(data: str):
         data = loads(data)
@@ -170,6 +186,8 @@ class UserData:
         for member in data['non_members']:
             user.__non_members.add(member)
             user.__members_time[member] = data['members_time'][str(member)]
+        for message in data['messages']:
+            user.add_message(message)
         assert(user.__id == data['id'])
         return user
 
@@ -226,6 +244,10 @@ class UserData:
             else:
                 self.__non_groups.add(group)
                 self.__groups_time[group] = new_user_data.__groups_time[group]
+        self.__sem_messages.acquire()
+        for message in new_user_data.__messages:
+            self.add_message(message)
+        self.__sem_messages.release()
         self.__sem_groups.release()
 
     def set_times(self, time: int):
