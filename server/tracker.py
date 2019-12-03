@@ -428,6 +428,14 @@ class TrackerService(KademliaService):
         self.update_lamport(peer_time)
         return result
 
+    @try_function()
+    def add_message_to(self, contact: Contact, key: int, message: Message, time: int) -> bool:
+        debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
+        self.update_lamport(peer_time)
+        return result
+
     @staticmethod
     def __start_register():
         while True:
