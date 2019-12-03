@@ -50,7 +50,7 @@ class UserData:
             'groups_time': self.__groups_time,
             'phone': self.__phone,
             'id': self.__id,
-            'message': list(self.__messages),
+            'messages': list(self.__messages),
         })
         self.__sem_messages.release()
         self.__sem_name.release()
@@ -186,6 +186,8 @@ class UserData:
         for member in data['non_members']:
             user.__non_members.add(member)
             user.__members_time[member] = data['members_time'][str(member)]
+        for message in data['messages']:
+            user.add_message(message)
         assert(user.__id == data['id'])
         return user
 
