@@ -216,6 +216,8 @@ class TrackerService(KademliaService):
             value = UserData.from_json(value)
             if use_self_time:
                 value.set_times(self.lamport)
+        elif option == 5:
+            value = Message.from_json(value)
         debug(f'TrackerService.exposed_client_store - Iterate the closest K nodes to find the key: {key}')
         for contact in top_contacts:
             if option == 0:
@@ -224,7 +226,7 @@ class TrackerService(KademliaService):
                 if not result:
                     error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
                 success = success or result
-            else:
+            elif option < 5:
                 function = None
                 if option == 1:
                     function = self.add_group_to
@@ -236,6 +238,12 @@ class TrackerService(KademliaService):
                     function = self.remove_member_to
                 debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}, with option: {option}')
                 result, _ = function(contact, key, value, self.lamport)
+                if not result:
+                    error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
+                success = success or result
+            elif option == 5:
+                debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
+                result, _ = self.add_message_to(contact, key, value.to_json())
                 if not result:
                     error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
                 success = success or result
