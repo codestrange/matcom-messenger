@@ -29,7 +29,7 @@ def test2():
     conn = rpyc.connect('localhost', 8081)
     _, name_time = leynier.get_name()
     leynier.set_name('carlos', name_time + 1)
-    print(conn.root.client_store(leynier.get_id(), 123123123123, True, 1))
+    print(conn.root.client_store(leynier.get_id(), 123123123123, 1))
     conn.root.client_data()
 
 
@@ -42,7 +42,7 @@ def test4():
     conn = rpyc.connect('localhost', 8081)
     _, name_time = leynier.get_name()
     leynier.set_name('carlos', name_time + 1)
-    print(conn.root.client_store(leynier.get_id(), 123123123123, True, 2))
+    print(conn.root.client_store(leynier.get_id(), 123123123123, 2))
     conn.root.client_data()
 
 if __name__ == "__main__":

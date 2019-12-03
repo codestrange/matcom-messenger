@@ -157,7 +157,7 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.exposed_remove_member - End of connection from {client}.')
         return True, self.lamport
 
-    def exposed_client_store(self, key: int, value: str, use_self_time: bool = True, option: int = 0) -> bool:
+    def exposed_client_store(self, key: int, value: str, option: int = 0, use_self_time: bool = True) -> bool:
         if not self.is_initialized:
             error(f'TrackerService.exposed_client_store - Instance not initialized')
             return None
@@ -234,7 +234,7 @@ class TrackerService(KademliaService):
         success = False
         for i in temp:
             debug(f'TrackerService.update_values - Call client store with key: {i[0]}, value: {i[1]}')
-            success = success or self.exposed_client_store(i[0], i[1], False)
+            success = success or self.exposed_client_store(i[0], i[1], use_self_time=False)
         debug(f'TrackerService.update_values - Finish with result: {success}')
  
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> tuple:
