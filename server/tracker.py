@@ -237,7 +237,7 @@ class TrackerService(KademliaService):
             success = success or self.exposed_client_store(i[0], i[1], use_self_time=False)
         debug(f'TrackerService.update_values - Finish with result: {success}')
  
-    def exposed_find_value(self, client: Contact, client_lamport: int, key: int) -> tuple:
+    def exposed_find_value(self, client: Contact, client_lamport: int, key: int, remove_messages: bool = False) -> tuple:
         if not self.is_initialized:
             error(f'TrackerService.exposed_find_value - Instance not initialized')
             return None, self.lamport
@@ -250,13 +250,17 @@ class TrackerService(KademliaService):
             value = self.data[key]
             debug(f'TrackerService.exposed_find_value - Replaying with value: {value}.')
             debug(f'TrackerService.exposed_find_value - End connection from {client}.')
-            return value.to_json(), self.lamport
+            result = value.to_json()
+            if remove_messages:
+                # TODO: remove messages in value
+                pass
+            return result, self.lamport
         except KeyError:
             debug(f'TrackerService.exposed_find_value - Value not founded.')
             debug(f'TrackerService.exposed_find_value - End connection from {client}.')
             return None, self.lamport
 
-    def exposed_client_find_value(self, key: int) -> object:
+    def exposed_client_find_value(self, key: int, remove_messages: bool = False) -> object:
         if not self.is_initialized:
             error(f'TrackerService.exposed_client_find_value - Instance not initialized')
             return None
@@ -289,7 +293,7 @@ class TrackerService(KademliaService):
                 debug('TrackerService.exposed_client_find_value -  Initial alpha nodes completed')
                 break
         debug('TrackerService.exposed_client_find_value - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock))
+        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock, remove_messages))
         manager.start()
         debug(f'TrackerService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
         value = last_value
@@ -303,7 +307,7 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.exposed_client_find_value - Finish method with value result: {value}')
         return value
 
-    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore):
+    def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore, remove_messages: bool):
         contact = None
         try:
             debug(f'TrackerService.find_value_lookup - Removing a contact from the queue')
@@ -318,7 +322,7 @@ class TrackerService(KademliaService):
             debug(f'TrackerService.find_value_lookup - No connection to the node: {contact} was established')
             return
         debug(f'TrackerService.find_value_lookup - Make the find_value on the contact: {contact}')
-        result, value = self.find_value_to(contact, key)
+        result, value = self.find_value_to(contact, key, remove_messages)
         if not result:
             debug(f'TrackerService.find_value_lookup - No connection to the node: {contact} was established')
             return
@@ -392,6 +396,14 @@ class TrackerService(KademliaService):
         debug(f'TrackerService.remove_member_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, member, time)
+        self.update_lamport(peer_time)
+        return result
+
+    @try_function()
+    def find_value_to(self, contact: Contact, key: int, remove_messages: bool = False) -> object:
+        debug(f'KademliaService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
+        connection = self.connect(contact)
+        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key, remove_messages)
         self.update_lamport(peer_time)
         return result
 
