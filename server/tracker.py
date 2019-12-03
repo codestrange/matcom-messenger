@@ -7,6 +7,7 @@ from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_DGRAM
 from rpyc import  connect, discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
+from .message import Message
 from .user_data import UserData
 from .utils import get_hash, KContactSortedArray, ThreadManager, try_function
 from .kademlia import Contact, KademliaService
@@ -155,6 +156,27 @@ class TrackerService(KademliaService):
             self.data_lock.release()
             debug(f'TrackerService.exposed_remove_member - Release lock for data')
         debug(f'TrackerService.exposed_remove_member - End of connection from {client}.')
+        return True, self.lamport
+
+    def exposed_add_message(self, client: Contact, client_lamport: int, key: int, message: Message) -> bool:
+        message = Message.from_json(message)
+        debug(f'TrackerService.exposed_add_message - Trying to add member in key: {key} with member: {message}.')
+        if not self.is_initialized:
+            error(f'TrackerService.exposed_add_message - Instance not initialized')
+            return False, self.lamport
+        client = Contact.from_json(client)
+        debug(f'TrackerService.exposed_add_message - Incoming connection from {client}.')
+        self.update_lamport(client_lamport)
+        self.update_contact(client)
+        if key in self.data:
+            debug(f'TrackerService.exposed_add_message - {key} in data')
+            debug(f'TrackerService.exposed_add_message - Acquire lock for data')
+            self.data_lock.acquire()
+            debug(f'TrackerService.exposed_add_message - Updating value')
+            self.data[key].add_message(message)
+            self.data_lock.release()
+            debug(f'TrackerService.exposed_add_message - Release lock for data')
+        debug(f'TrackerService.exposed_add_message - End of connection from {client}.')
         return True, self.lamport
 
     def exposed_client_store(self, key: int, value: str, option: int = 0, use_self_time: bool = True) -> bool:
