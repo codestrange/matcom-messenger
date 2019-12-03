@@ -422,7 +422,7 @@ class TrackerService(KademliaService):
 
     @try_function()
     def find_value_to(self, contact: Contact, key: int, remove_messages: bool = False) -> object:
-        debug(f'KademliaService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
+        debug(f'TrackerService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
         connection = self.connect(contact)
         result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key, remove_messages)
         self.update_lamport(peer_time)
