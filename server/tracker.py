@@ -300,7 +300,7 @@ class TrackerService(KademliaService):
             result, _ = self.store_to(contact, key, value.to_json())
             if not result:
                 error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
-        debug(f'TrackerService.exposed_client_store - Finish method with value result: {value}')
+        debug(f'TrackerService.exposed_client_find_value - Finish method with value result: {value}')
         return value
 
     def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore):
