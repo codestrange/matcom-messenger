@@ -252,8 +252,7 @@ class TrackerService(KademliaService):
             debug(f'TrackerService.exposed_find_value - End connection from {client}.')
             result = value.to_json()
             if remove_messages:
-                # TODO: remove messages in value
-                pass
+                value.clear_messages()
             return result, self.lamport
         except KeyError:
             debug(f'TrackerService.exposed_find_value - Value not founded.')
