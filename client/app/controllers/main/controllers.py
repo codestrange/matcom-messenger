@@ -1,10 +1,18 @@
-from flask import render_template
+from flask import render_template, redirect, url_for
 from . import main_blueprint
+from ...models import UserModel
 
 
-@main_blueprint.route('/')
+@main_blueprint.route('/', methods=['GET'])
 def index():
+    if UserModel.query.first() is None:
+        return redirect(url_for('main.register'))
     return render_template('index.html')
+
+
+@main_blueprint.route('/register', methods=['GET', 'POST'])
+def register():
+    return 'Register page'
 
 
 @main_blueprint.app_errorhandler(403)
