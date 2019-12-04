@@ -1,7 +1,9 @@
 from flask import render_template, redirect, url_for
 from . import main_blueprint
 from .forms import RegisterForm
-from ...models import UserModel
+from ...models import db, UserModel
+from ....service import ClientService
+from .....server.tracker import TrackerService
 
 
 @main_blueprint.route('/', methods=['GET'])
@@ -15,7 +17,14 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        pass
+        phone = '+5358389488'
+	    user = UserModel(name, phone)
+	    result = ClientService.store_user_data(phone, 0, name, '1234', TrackerService.get_ip(), 3000)
+	    if not result:
+	        pass
+	    db.session.add(user)
+	    db.session.commit()
+	    return redirect(url_for('main.index'))
     return render_template('register.html', form=form)
 
 
