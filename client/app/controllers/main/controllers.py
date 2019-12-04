@@ -17,14 +17,15 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        phone = '+5358389488'
-	    user = UserModel(name, phone)
-	    result = ClientService.store_user_data(phone, 0, name, '1234', TrackerService.get_ip(), 3000)
-	    if not result:
-	        pass
-	    db.session.add(user)
-	    db.session.commit()
-	    return redirect(url_for('main.index'))
+        phone = form.phone.data
+        name = form.name.data
+        user = UserModel(phone, name)
+        result = ClientService.store_user_data(phone, 0, name, '1234', TrackerService.get_ip(), 3000)
+        if not result:
+            pass
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('main.index'))
     return render_template('register.html', form=form)
 
 
