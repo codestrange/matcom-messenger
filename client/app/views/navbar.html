@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block body_content %}
+    {% block header %} {% endblock header %}
+    {% block navbar %}
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">MatCom Messenger</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>  
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Inicio</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav align-content-end">
+                <a class="btn btn-outline-light" href="{{ url_for('main.index') }}">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Iniciar Sesión
+                </a>
+            </ul>
+        </div>
+    </nav>
+    {% endblock navbar %}
+    {% block content %}
+    <main role="main" class="container-fluid">
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-warning">
+            <button type="button" class="close" data-dismiss="alert">&times;</button> {{ message }}
+        </div>
+        {% endfor %}
+        {% block page_content %} {% endblock page_content %}
+    </main>
+    {% endblock content %}
+    {% block footer %} {% endblock footer %}
+{% endblock body_content %}
