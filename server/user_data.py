@@ -6,7 +6,7 @@ from .utils import get_hash
 
 
 class UserData:
-    def __init__(self, name: str = None, phone: str = None, password: str = None, creation_time: int = None, nonce: int = 0):
+    def __init__(self, name: str = None, phone: str = None, password: str = None, creation_time: int = None, nonce: int = 0, ip: str = None, port: int = -1):
         self.__name = name
         self.__name_time = -1 if creation_time is None else creation_time
         self.__sem_name = Semaphore()
@@ -26,6 +26,9 @@ class UserData:
         self.__sem_password = Semaphore()
         self.__messages = set()
         self.__sem_messages = Semaphore()
+        self.__dir = (ip, port)
+        self.__sem_dir = Semaphore()
+        self.__dir_time = -1 if creation_time is None else creation_time
 
     def __str__(self):
         return self.__repr__()
@@ -36,6 +39,7 @@ class UserData:
         self.__sem_groups.acquire()
         self.__sem_password.acquire()
         self.__sem_messages.acquire()
+        self.__sem_dir.acquire()
         result = dumps({
             'name': self.__name,
             'name_time': self.__name_time,
@@ -51,7 +55,11 @@ class UserData:
             'phone': self.__phone,
             'id': self.__id,
             'messages': list(self.__messages),
+            'ip': self.__dir[0],
+            'port': self.__dir[1],
+            'dir_time': self.__dir_time,
         })
+        self.__sem_dir.release()
         self.__sem_messages.release()
         self.__sem_name.release()
         self.__sem_members.release()
@@ -86,6 +94,12 @@ class UserData:
         self.__sem_groups.release()
         return result
 
+    def get_dir(self):
+        self.__sem_dir.acquire()
+        result = self.__dir, self.__dir_time
+        self.__sem_dir.release()
+        return result
+
     def get_nonce(self):
         return self.__nonce
 
@@ -99,6 +113,15 @@ class UserData:
             result = True
             self.__name, self.__name_time = nname, ntime
         self.__sem_name.release()
+        return result
+
+    def set_dir(self, ip: str, port: int, ntime: int):
+        self.__sem_dir.acquire()
+        result = False
+        if ntime > self.__dir_time:
+            result = True
+            self.__dir, self.__dir_time = (ip, port), ntime
+        self.__sem_dir.release()
         return result
 
     def set_password(self, npassword: str, ntime: int):
@@ -173,9 +196,10 @@ class UserData:
     @staticmethod
     def from_json(data: str):
         data = loads(data)
-        user = UserData(data['name'], data['phone'], data['password'], -1, nonce=data['nonce'])
+        user = UserData(data['name'], data['phone'], data['password'], -1, nonce=data['nonce'], ip=data['ip'], port=data['port'])
         user.set_name(data['name'], data['name_time'])
         user.set_password(data['password'], data['password_time'])
+        user.set_dir(data['ip'], data['port'], data['dir_time'])
         for group in data['groups']:
             user.add_group(group, data['groups_time'][str(group)])
         for member in data['members']:
@@ -197,6 +221,8 @@ class UserData:
         self.__phone = new_user_data.__phone
         self.set_name(*new_user_data.get_name())
         self.set_password(*new_user_data.get_password())
+        dir, time = new_user_data.get_dir()
+        self.set_dir(*dir, time)
         self.__sem_members.acquire()
         for member in new_user_data.__members:
             if member in self.__members:
@@ -262,4 +288,8 @@ class UserData:
         self.__password_time = time
         self.__sem_password.release()
         debug(f'UserData - Release lock for password')
+        self.__sem_dir.acquire()
+        self.__dir_time = time
+        self.__sem_dir.release()
         debug(f'UserData - End set times')
+
