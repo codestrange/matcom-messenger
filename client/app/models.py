@@ -43,6 +43,7 @@ class MessageModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
     time = db.Column(db.DateTime, nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('contact_model.id'))
 
     def __init__(self, text, time):
         self.text = text
