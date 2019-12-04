@@ -19,3 +19,16 @@ class UserModel(db.Model):
 
     def __repr__(self):
         return self.name
+
+
+class MessageModel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, text, time):
+        self.text = text
+        self.time = time
+
+    def __repr__(self):
+        return self.text
