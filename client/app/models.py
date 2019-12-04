@@ -9,13 +9,13 @@ db = SQLAlchemy(session_options={"autoflush": False})
 class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(64), unique=True, nullable=False)
-    tracker_id = db.Column(db.Integer, unique=True, nullable=False)
+    tracker_id = db.Column(db.String(256), unique=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
 
     def __init__(self, phone, name):
         self.name = name
         self.phone = phone
-        self.tracker_id = get_hash(f'{phone}:0')
+        self.tracker_id = str(get_hash(f'{phone}:0'))
 
     def __repr__(self):
         return self.name
@@ -23,7 +23,7 @@ class UserModel(db.Model):
 
 class ContactModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tracker_id = db.Column(db.Integer, unique=True, nullable=False)
+    tracker_id = db.Column(db.String(256), unique=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
     host = db.Column(db.String(64), nullable=False)
     port = db.Column(db.Integer, nullable=False)
