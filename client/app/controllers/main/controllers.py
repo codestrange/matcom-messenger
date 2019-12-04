@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for
 from . import main_blueprint
+from .forms import RegisterForm
 from ...models import UserModel
 
 
@@ -12,7 +13,10 @@ def index():
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
-    return 'Register page'
+    form = RegisterForm()
+    if form.validate_on_submit():
+        pass
+    return render_template('register.html', form=form)
 
 
 @main_blueprint.app_errorhandler(403)
