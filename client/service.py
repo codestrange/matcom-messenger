@@ -3,6 +3,7 @@ from ..server.message import Message
 from ..server.user_data import UserData
 from ..server.utils import try_function
 
+
 class ClientService(Service):
     def __init__(self, app):
         self.app = app

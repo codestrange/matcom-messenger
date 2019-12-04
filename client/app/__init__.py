@@ -1,8 +1,10 @@
 from threading import Thread
 from flask import Flask
 from flask_cors import CORS
+from rpyc.utils.server import ThreadedServer
 from .config import config
 from .models import db
+from ..service import ClientService
 
 
 def create_app(config_name):
@@ -24,4 +26,6 @@ def create_app(config_name):
 
 
 def start_service(app):
-    pass
+    service = ClientService(app)
+    server = ThreadedServer(service, 3000, protocol_config={'allow_public_attrs': True})
+    server.start()
