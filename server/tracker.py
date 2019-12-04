@@ -550,5 +550,5 @@ class TrackerService(KademliaService):
                     s.close()
         except Exception as e:
             error(f'TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered. Exception: {e}')
-            ip = gethostbyname(gethostname()) # This should never happen if
+            ip = gethostbyname(gethostname()) # This should never happen if the Registry is online
         return ip
