@@ -36,10 +36,40 @@ class ClientService(Service):
                         conn = connect(*node)
                         result = conn.root.client_store(to_user.get_id(), smessage, option=5)
                         if result:
-                            return result
-                        raise Exception()
+                            return True
                     except Exception:
                         continue
             except Exception:
                 pass
         return False
+
+    @staticmethod
+    def get_user_data(id: int, remove_messages: bool = False):
+        try:
+            dht_nodes = discover('TRACKER')
+            for node in dht_nodes:
+                try:
+                    conn = connect(*node)
+                    result = conn.root.client_find_value(id, remove_messages)
+                    if result:
+                        return True
+                except Exception:
+                    continue
+        except Exception:
+            return False
+
+    @staticmethod
+    def store_user_data(phone: str, nonce: int, name: str, password: str, ip: str, port: int):
+        user = UserData(name, phone, password, -1, nonce, ip, port)
+        try:
+            dht_nodes = discover('TRACKER')
+            for node in dht_nodes:
+                try:
+                    conn = connect(*node)
+                    result = conn.root.client_store(user.get_id(), user)
+                    if result:
+                        return True
+                except Exception:
+                    continue
+        except Exception:
+            return False
