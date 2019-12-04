@@ -1,6 +1,5 @@
 from flask import render_template
 from . import main_blueprint
-from ...models import User
 
 
 @main_blueprint.route('/')
