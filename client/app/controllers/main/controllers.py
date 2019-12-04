@@ -1,7 +1,8 @@
-from flask import render_template, redirect, url_for
+from flask import flash, render_template, redirect, url_for
 from . import main_blueprint
 from .forms import RegisterForm
 from ...models import db, UserModel
+from ...utils import flash_errors
 from ....service import ClientService
 from .....server.tracker import TrackerService
 
@@ -22,10 +23,13 @@ def register():
         user = UserModel(phone, name)
         result = ClientService.store_user_data(phone, 0, name, '1234', TrackerService.get_ip(), 3000)
         if not result:
-            pass
+            flash('Network access not available')
+            return render_template('register.html', form=form)
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('main.index'))
+    else:
+        flash_errors(form)
     return render_template('register.html', form=form)
 
 
