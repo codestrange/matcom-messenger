@@ -64,7 +64,7 @@ def add_contact():
         user_data = UserData.from_json(result)
         contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
         try:
-            db.session.add(content)
+            db.session.add(contact)
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()

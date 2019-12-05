@@ -1,4 +1,5 @@
 from rpyc import connect, discover, Service
+from sqlalchemy.exc import SQLAlchemyError
 from ..server.message import Message
 from ..server.user_data import UserData
 from ..server.utils import try_function
@@ -29,10 +30,10 @@ class ClientService(Service):
                 c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
             m.sender = c
             try:
-                db.session.add(c)
-                db.session.commit()
+                self.app.db.session.add(c)
+                self.app.db.session.commit()
             except SQLAlchemyError:
-                db.session.rollback()
+                self.app.db.session.rollback()
 
 
     @staticmethod
