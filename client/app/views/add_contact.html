@@ -2,11 +2,13 @@
 {% block page_content %}
 <div class="row">
     <div class="col-6 offset-3">
-        <div class="card mb-5 text-white bg-dark">
+        <div class="card mb-3 text-white bg-dark">
             <div class="card-header text-center">
                 <h2 class="m-0">Add Contact</h2>
             </div>
-            <div class="card-body">
+        </div>
+        <div class="card mb-5 text-white bg-dark">
+            <div class="card-body p-2">
                 <form method="POST">
                     {{ form.csrf_token }}
                     <div class="row">
@@ -17,7 +19,7 @@
                             </div>
                         </div>
                     </div>
-                    {{ form.submit(class="btn btn-outline-light btn-block") }}
+                    {{ form.submit(class="btn btn-sm btn-outline-light btn-block") }}
                 </form>
             </div>
         </div>
