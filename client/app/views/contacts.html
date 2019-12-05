@@ -1,0 +1,27 @@
+{% extends "navbar.html" %}
+{% block page_content %}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card mb-3 text-white bg-dark">
+            <div class="card-header text-center">
+                <h2 class="m-0">Contacts</h2>
+            </div>
+        </div>
+        {% for contact in contacts %}
+        <div class="card text-light bg-dark mb-1">
+            <div class="card-body text-center p-0">
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong> <small>({{ contact.phone }})</small></a>
+            </div>
+        </div>
+        {% endfor %}
+        {% if not contacts %}
+        <h3 class="m-5 text-center">No messages</h3>
+        {% endif %}
+        <div class="card text-light bg-dark mt-3">
+            <div class="card-body text-center p-0">
+                <a class="btn btn-outline-light btn-block" href="{{ url_for('main.add_contact') }}" role="button"><strong>Add Contact</strong></a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

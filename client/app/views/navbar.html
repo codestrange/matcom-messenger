@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block body_content %}
+    {% block header %} {% endblock header %}
+    {% block navbar %}
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">MatCom Messenger</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>  
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Chats</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.contacts') }}">Contacts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.add_contact') }}">Add Contact</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endblock navbar %}
+    {% block content %}
+    <main role="main" class="container-fluid">
+        <div class="row">
+            <div class="col-6 offset-3">
+                {% for message in get_flashed_messages() %}
+                <div class="alert alert-warning">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button> {{ message }}
+                </div>
+                {% endfor %}  
+            </div>
+        </div>
+        {% block page_content %} {% endblock page_content %}
+    </main>
+    {% endblock content %}
+    {% block footer %} {% endblock footer %}
+{% endblock body_content %}

@@ -1,0 +1,15 @@
+{% extends "navbar.html" %}
+{% block subtitle %} - Error 500{% endblock subtitle %}
+{% block page_content %}
+<div class="card text-light bg-dark">
+    <div class="card-header">
+        <h2 class="m-0">Ha ocurrido un error!</h2>
+    </div>
+    <div class="card-body">
+        500 - Error interno en el servidor.
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('main.index') }}" class="btn btn-block btn-outline-light">Ir a la página de Inicio</a>
+    </div>
+</div>
+{% endblock page_content %}

@@ -1,0 +1,32 @@
+{% block doc %}
+<!doctype html>
+<html {% block html_attribs %} lang="en" {% endblock html_attribs %}>
+{% block html %}
+<head>
+{% block head %}
+    {% block metas %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% endblock metas %}
+    <title>{% block title %}MatCom Messenger{% endblock title %}{% block subtitle %}{% endblock subtitle %}</title>
+    {% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.css') }}">
+    {% endblock styles %}
+{% endblock head %}
+</head>
+<body {% block body_attribs %} style="padding-top: 5rem" {% endblock body_attribs %}>
+{% block body %}
+    {% block body_content %}
+    {% endblock body_content %}
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/jquery-3.3.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fontawesome.js') }}" defer></script>
+    {% endblock scripts %}
+{% endblock body %}
+</body>
+</html>
+{% endblock html %}
+{% endblock doc %}

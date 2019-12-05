@@ -4,7 +4,7 @@ from .utils import get_hash
 class Message:
     def __init__(self, text: str, sender: int, time: str):
         self.text = text
-        self.sender = text
+        self.sender = sender
         self.time = time
         self.id = get_hash(':'.join([sender, time, text]))
 
