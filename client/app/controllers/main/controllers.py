@@ -105,6 +105,11 @@ def chat(contact_id):
     return render_template('chat.html', form=form, contact=contact, messages=messages)
 
 
+@main_blueprint.route('/profile', methods=['GET'])
+def profile():
+    return render_template('/profile.html')
+
+
 @main_blueprint.route('/logout', methods=['GET'])
 def logout():
     db.drop_all()

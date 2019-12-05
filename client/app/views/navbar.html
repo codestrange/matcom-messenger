@@ -27,13 +27,9 @@
                         {{ current_user().name }} 
                     </button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUserInfo">
-                        <a class="dropdown-item" href="{{ url_for('main.index') }}">
+                        <a class="dropdown-item" href="{{ url_for('main.profile') }}">
                             <i class="fas fa-user mr-2"></i>
-                            Ver Perfil
-                        </a>
-                        <a class="dropdown-item" href="{{ url_for('main.index') }}">
-                            <i class="fas fa-user-edit mr-1"></i>
-                            Editar Perfil
+                            See Profile
                         </a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="{{ url_for('main.logout') }}">
