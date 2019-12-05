@@ -20,7 +20,7 @@ class ClientService(Service):
     def insert_message(self, message: Message):
         with self.app.app_context():
             m = MessageModel(message.text, time=message.time)
-            c = ContactModel.query.filter_by(ContactModel.tracker_id=str(message.sender)).first()
+            c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
                 result = ClientService.get_user_data(message.sender)
                 if not result:
