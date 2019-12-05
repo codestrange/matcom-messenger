@@ -62,7 +62,7 @@ def add_contact():
             flash('Network access not available')
             return render_template('add_contact.html', form=form)
         user_data = UserData.from_json(result)
-        contact = ContactModel(user_data.__id, user_data.__phone, user_data.__name, *user_data.__dir)
+        contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
         try:
             db.session.add(contact)
             db.session.commit()
