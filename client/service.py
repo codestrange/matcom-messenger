@@ -38,6 +38,7 @@ class ClientService(Service):
 
     @staticmethod
     def send_message_to(app, text: str, sender_id: int, ip: str, port: int, time: str):
+        sender_id = int(sender_id)
         message = Message(text, sender_id, time)
         smessage = message.to_json()
         try: #Direct connection
