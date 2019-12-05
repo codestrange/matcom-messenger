@@ -27,15 +27,15 @@ class ContactModel(db.Model):
     tracker_id = db.Column(db.String(256), unique=True, nullable=False)
     phone = db.Column(db.String(64), unique=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
-    host = db.Column(db.String(64), nullable=False)
+    ip = db.Column(db.String(64), nullable=False)
     port = db.Column(db.Integer, nullable=False)
     messages = db.relationship('MessageModel', backref='sender', lazy='dynamic')
 
-    def __init__(self, tracker_id, phone, name, host, port):
+    def __init__(self, tracker_id, phone, name, ip, port):
         self.tracker_id = str(tracker_id)
         self.name = name
         self.phone = phone
-        self.host = host
+        self.ip = ip
         self.port = port
 
     def __repr__(self):
