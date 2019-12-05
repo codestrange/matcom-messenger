@@ -25,19 +25,20 @@ class UserModel(db.Model):
 class ContactModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tracker_id = db.Column(db.String(256), unique=True, nullable=False)
+    phone = db.Column(db.String(64), unique=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
     host = db.Column(db.String(64), nullable=False)
     port = db.Column(db.Integer, nullable=False)
     messages = db.relationship('MessageModel', backref='sender', lazy='dynamic')
 
-    def __init__(self, tracker_id, name, host, port):
+    def __init__(self, tracker_id, phone, name, host, port):
         self.tracker_id = str(tracker_id)
         self.name = name
         self.host = host
         self.port = port
 
     def __repr__(self):
-        return self.name if self.name else f'<{host}, {port}, {tracker_id}>'
+        return self.name
 
 
 class MessageModel(db.Model):
