@@ -10,14 +10,11 @@
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Inicio</a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
                 </li>
-            </ul>
-            <ul class="navbar-nav align-content-end">
-                <a class="btn btn-outline-light" href="{{ url_for('main.index') }}">
-                    <i class="fas fa-sign-in-alt mr-2"></i>
-                    Iniciar Sesión
-                </a>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.contacts') }}">Contacts</a>
+                </li>
             </ul>
         </div>
     </nav>

@@ -1,8 +1,8 @@
 from flask import flash, render_template, redirect, url_for
 from . import main_blueprint
 from .forms import RegisterForm
-from ...models import db, UserModel
 from ...decorators import register_required
+from ...models import db, ContactModel, MessageModel, UserModel
 from ...utils import flash_errors
 from ....service import ClientService
 from .....server.tracker import TrackerService
@@ -32,6 +32,12 @@ def register():
         flash_errors(form)
     return render_template('register.html', form=form)
 
+
+@main_blueprint.route('/contacts', methods=['GET'])
+@register_required
+def contacts():
+    contacts = ContactModel.query.all()
+    return render_template('contacts.html', contacts=contacts)
 
 @main_blueprint.app_errorhandler(403)
 def forbidden(e):
