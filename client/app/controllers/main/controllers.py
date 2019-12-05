@@ -105,6 +105,13 @@ def chat(contact_id):
     return render_template('chat.html', form=form, contact=contact, messages=messages)
 
 
+@main_blueprint.route('/logout', methods=['GET'])
+def logout():
+    db.drop_all()
+    db.create_all()
+    return redirect(url_for('main.index'))
+
+
 @main_blueprint.app_errorhandler(403)
 def forbidden(e):
     return render_template('errors/403.html'), 403
