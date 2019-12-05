@@ -2,15 +2,15 @@ from flask import flash, render_template, redirect, url_for
 from . import main_blueprint
 from .forms import RegisterForm
 from ...models import db, UserModel
+from ...decorators import register_required
 from ...utils import flash_errors
 from ....service import ClientService
 from .....server.tracker import TrackerService
 
 
 @main_blueprint.route('/', methods=['GET'])
+@register_required
 def index():
-    if UserModel.query.first() is None:
-        return redirect(url_for('main.register'))
     return render_template('index.html')
 
 
