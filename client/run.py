@@ -10,3 +10,9 @@ app = create_app(getenv('FLASK_CONFIG') or 'default')
 def make_shell_context():
     return dict(app=app, db=db, ContactModel=ContactModel, MessageModel=MessageModel, \
         UserModel=UserModel)
+
+
+@app.cli.command()
+def init():
+    db.drop_all()
+    db.create_all()
