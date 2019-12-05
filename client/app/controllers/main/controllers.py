@@ -12,7 +12,10 @@ from .....server import get_hash, TrackerService, UserData
 @main_blueprint.route('/', methods=['GET'])
 @register_required
 def index():
-    return render_template('index.html')
+    contacts = ContactModel.query.filter(ContactModel.messages).all()
+    messages = [contact.messages.order_by(MessageModel.time.desc()).first() for contact in contacts]
+    content = zip(contacts, messages)
+    return render_template('index.html', content=content)
 
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])
