@@ -24,11 +24,15 @@
     {% endblock navbar %}
     {% block content %}
     <main role="main" class="container-fluid">
-        {% for message in get_flashed_messages() %}
-        <div class="alert alert-warning">
-            <button type="button" class="close" data-dismiss="alert">&times;</button> {{ message }}
+        <div class="row">
+            <div class="col-6 offset-3">
+                {% for message in get_flashed_messages() %}
+                <div class="alert alert-warning">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button> {{ message }}
+                </div>
+                {% endfor %}  
+            </div>
         </div>
-        {% endfor %}
         {% block page_content %} {% endblock page_content %}
     </main>
     {% endblock content %}
