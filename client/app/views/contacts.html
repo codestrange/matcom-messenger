@@ -14,6 +14,9 @@
             </div>
         </div>
         {% endfor %}
+        {% if not contacts %}
+        <h3 class="m-5 text-center">No messages</h3>
+        {% endif %}
         <div class="card text-light bg-dark mt-3">
             <div class="card-body text-center p-0">
                 <a class="btn btn-outline-light btn-block" href="{{ url_for('main.add_contact') }}" role="button"><strong>Add Contact</strong></a>

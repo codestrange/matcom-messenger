@@ -18,6 +18,9 @@
             </div>
         </div>
         {% endfor %}
+        {% if not content %}
+        <h3 class="m-5 text-center">No chats</h3>
+        {% endif %}
     </div>
 </div>
 {% endblock page_content %}
