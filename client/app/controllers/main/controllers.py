@@ -1,11 +1,11 @@
 from flask import flash, render_template, redirect, url_for
 from . import main_blueprint
-from .forms import RegisterForm
+from .forms import AddContactForm, RegisterForm
 from ...decorators import register_required
 from ...models import db, ContactModel, MessageModel, UserModel
 from ...utils import flash_errors
 from ....service import ClientService
-from .....server.tracker import TrackerService
+from .....server import get_hash, TrackerService, UserData
 
 
 @main_blueprint.route('/', methods=['GET'])
@@ -38,6 +38,28 @@ def register():
 def contacts():
     contacts = ContactModel.query.all()
     return render_template('contacts.html', contacts=contacts)
+
+
+@main_blueprint.route('/add_contact', methods=['GET', 'POST'])
+@register_required
+def add_contact():
+    form = AddContactForm()
+    if form.validate_on_submit():
+        phone = form.phone.data
+        contact_id = get_hash(f'{phone}:0')
+        result = ClientService.get_user_data(contact_id)
+        if not result:
+            flash('Network access not available')
+            return render_template('add_contact.html', form=form)
+        user_data = UserData.from_json(result)
+        contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
+        db.session.add(contact)
+        db.session.commit()
+        return redirect(url_for('main.contacts'))
+    else:
+        flash_errors(form)
+    return render_template('add_contact.html', form=form)
+
 
 @main_blueprint.app_errorhandler(403)
 def forbidden(e):

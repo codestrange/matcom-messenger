@@ -7,3 +7,8 @@ class RegisterForm(FlaskForm):
     phone = StringField('Phone', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+
+class AddContactForm(FlaskForm):
+    phone = StringField('Phone', validators=[DataRequired()])
+    submit = SubmitField('Submit')
