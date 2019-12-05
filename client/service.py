@@ -37,7 +37,7 @@ class ClientService(Service):
 
 
     @staticmethod
-    def send_message_to(text: str, sender_id: int, ip: str, port: int, time: str):
+    def send_message_to(app, text: str, sender_id: int, ip: str, port: int, time: str):
         message = Message(text, sender_id, time)
         smessage = message.to_json()
         try: #Direct connection
@@ -45,6 +45,20 @@ class ClientService(Service):
             result = peer.root.send_message(smessage)
             if result:
                 return result
+            new_data = ClientService.get_user_data(sender_id)
+            if new_data:
+                contact = ContactModel.query.filter_by(tracker_id=sender_id).first()
+                if contact:
+                    contact.ip = new_data.ip
+                    contact.port = new_data.port
+                    contact.name = new_data.name
+                    try:
+                        app.db.session.add(contact)
+                        app.db.session.commit()
+                        peer = connect(new_data.ip, new_data.port)
+                        result = peer.root.send_message(smessage)
+                    except SQLAlchemyError:
+                        app.db.session.rollback()
             raise Exception()
         except Exception: #Send message to DHT
             try:

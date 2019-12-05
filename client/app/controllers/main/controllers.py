@@ -86,7 +86,7 @@ def chat(contact_id):
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
         message.sender = contact
-        result = ClientService.send_message_to(text, contact.tracker_id, contact.ip, contact.port, str(message.time))
+        result = ClientService.send_message_to(app, text, contact.tracker_id, contact.ip, contact.port, str(message.time))
         if not result:
             flash('Network access not available')
             form.text.data = text
