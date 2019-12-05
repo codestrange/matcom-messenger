@@ -1,3 +1,4 @@
+from datetime import datetime
 from rpyc import connect, discover, Service
 from sqlalchemy.exc import SQLAlchemyError
 from ..server.message import Message
@@ -17,10 +18,11 @@ class ClientService(Service):
         except Exception:
             return False
         return True
-    
+
     def insert_message(self, message: Message):
         with self.app.app_context():
-            m = MessageModel(message.text, time=message.time)
+            datetime.strftime
+            m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
             c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
                 result = ClientService.get_user_data(message.sender)
