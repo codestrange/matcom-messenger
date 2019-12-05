@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import flash, render_template, redirect, url_for
+from flask import current_app, flash, render_template, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError
 from . import main_blueprint
 from .forms import AddContactForm, RegisterForm, SendMessageForm
@@ -86,7 +86,7 @@ def chat(contact_id):
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
         message.sender = contact
-        result = ClientService.send_message_to(app, text, contact.tracker_id, contact.ip, contact.port, str(message.time))
+        result = ClientService.send_message_to(current_app, text, contact.tracker_id, contact.ip, contact.port, str(message.time))
         if not result:
             flash('Network access not available')
             form.text.data = text
