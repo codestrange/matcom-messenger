@@ -1,6 +1,7 @@
+from datetime import datetime
 from flask import flash, render_template, redirect, url_for
 from . import main_blueprint
-from .forms import AddContactForm, RegisterForm
+from .forms import AddContactForm, RegisterForm, SendMessageForm
 from ...decorators import register_required
 from ...models import db, ContactModel, MessageModel, UserModel
 from ...utils import flash_errors
@@ -59,6 +60,30 @@ def add_contact():
     else:
         flash_errors(form)
     return render_template('add_contact.html', form=form)
+
+
+@main_blueprint.route('/chat/<contact_id>', methods=['GET', 'POST'])
+@register_required
+def chat(contact_id):
+    form = SendMessageForm()
+    contact = ContactModel.query.get_or_404(contact_id)
+    messages = contact.messages.order_by(MessageModel.time.desc()).all()
+    if form.validate_on_submit():
+        text = form.text.data
+        message = MessageModel(text, False, datetime.now())
+        message.sender = contact
+        result = ClientService.send_message_to(text, contact.tracker_id, contact.ip, contact.port, str(message.time))
+        if not result:
+            flash('Network access not available')
+            form.text.data = text
+            return render_template('chat.html', form=form, contact=contact, messages=messages)
+        db.session.add(message)
+        db.session.commit()
+        messages = contact.messages.order_by(MessageModel.time.desc()).all()
+        form.text.data = ''
+    else:
+        flash_errors(form)
+    return render_template('chat.html', form=form, contact=contact, messages=messages)
 
 
 @main_blueprint.app_errorhandler(403)
