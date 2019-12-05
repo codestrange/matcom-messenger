@@ -118,3 +118,8 @@ def page_not_found(e):
 @main_blueprint.app_errorhandler(500)
 def internal_server_error(e):
     return render_template('errors/500.html'), 500
+
+
+@main_blueprint.app_context_processor
+def inject_current_user():
+    return dict(current_user=UserModel.query.first)
