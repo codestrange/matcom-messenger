@@ -2,6 +2,7 @@ from rpyc import connect, discover, Service
 from ..server.message import Message
 from ..server.user_data import UserData
 from ..server.utils import try_function
+from .app.models import MessageModel, ContactModel
 
 
 class ClientService(Service):
@@ -17,7 +18,22 @@ class ClientService(Service):
         return True
     
     def insert_message(self, message: Message):
-        pass
+        with self.app.app_context():
+            m = MessageModel(message.text, time=message.time)
+            c = ContactModel.query.filter_by(ContactModel.tracker_id=str(message.sender)).first()
+            if not c:
+                result = ClientService.get_user_data(message.sender)
+                if not result:
+                    raise Exception()
+                user_data = UserData.from_json(result)
+                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
+            m.sender = c
+            try:
+                db.session.add(c)
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+
 
     @staticmethod
     def send_message_to(text: str, sender_id: int, ip: str, port: int, time: str):
@@ -53,11 +69,11 @@ class ClientService(Service):
                     conn = connect(*node)
                     result = conn.root.client_find_value(id, remove_messages)
                     if result:
-                        return True
+                        return result
                 except Exception:
                     continue
         except Exception:
-            return False
+            return None
 
     @staticmethod
     def store_user_data(phone: str, nonce: int, name: str, password: str, ip: str, port: int):
