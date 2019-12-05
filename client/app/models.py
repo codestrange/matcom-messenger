@@ -34,6 +34,7 @@ class ContactModel(db.Model):
     def __init__(self, tracker_id, phone, name, host, port):
         self.tracker_id = str(tracker_id)
         self.name = name
+        self.phone = phone
         self.host = host
         self.port = port
 
