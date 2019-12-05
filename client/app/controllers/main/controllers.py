@@ -80,13 +80,14 @@ def add_contact():
 @register_required
 def chat(contact_id):
     form = SendMessageForm()
+    user = UserModel.query.first()
     contact = ContactModel.query.get_or_404(contact_id)
     messages = contact.messages.order_by(MessageModel.time.desc()).all()
     if form.validate_on_submit():
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
         message.sender = contact
-        result = ClientService.send_message_to(current_app, text, contact.tracker_id, contact.ip, contact.port, str(message.time))
+        result = ClientService.send_message_to(current_app, text, user.tracker_id, contact.ip, contact.port, str(message.time))
         if not result:
             flash('Network access not available')
             form.text.data = text
