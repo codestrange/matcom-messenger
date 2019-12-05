@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import flash, render_template, redirect, url_for
+from flask import current_app, flash, render_template, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError
 from . import main_blueprint
 from .forms import AddContactForm, RegisterForm, SendMessageForm
@@ -15,7 +15,7 @@ from .....server import get_hash, TrackerService, UserData
 def index():
     contacts = ContactModel.query.filter(ContactModel.messages).all()
     messages = [contact.messages.order_by(MessageModel.time.desc()).first() for contact in contacts]
-    content = zip(contacts, messages)
+    content = list(zip(contacts, messages))
     return render_template('index.html', content=content)
 
 
@@ -62,9 +62,9 @@ def add_contact():
             flash('Network access not available')
             return render_template('add_contact.html', form=form)
         user_data = UserData.from_json(result)
-        contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
+        contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
         try:
-            db.session.add(content)
+            db.session.add(contact)
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
@@ -80,13 +80,14 @@ def add_contact():
 @register_required
 def chat(contact_id):
     form = SendMessageForm()
+    user = UserModel.query.first()
     contact = ContactModel.query.get_or_404(contact_id)
-    messages = contact.messages.order_by(MessageModel.time.desc()).all()
+    messages = contact.messages.order_by(MessageModel.time).all()
     if form.validate_on_submit():
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
         message.sender = contact
-        result = ClientService.send_message_to(text, contact.tracker_id, contact.ip, contact.port, str(message.time))
+        result = ClientService.send_message_to(current_app, text, user.tracker_id, contact.ip, contact.port, str(message.time))
         if not result:
             flash('Network access not available')
             form.text.data = text
@@ -98,11 +99,23 @@ def chat(contact_id):
             db.session.rollback()
             flash('Error')
             return render_template('chat.html', form=form, contact=contact, messages=messages)
-        messages = contact.messages.order_by(MessageModel.time.desc()).all()
+        messages = contact.messages.order_by(MessageModel.time).all()
         form.text.data = ''
     else:
         flash_errors(form)
     return render_template('chat.html', form=form, contact=contact, messages=messages)
+
+
+@main_blueprint.route('/profile', methods=['GET'])
+def profile():
+    return render_template('/profile.html')
+
+
+@main_blueprint.route('/logout', methods=['GET'])
+def logout():
+    db.drop_all()
+    db.create_all()
+    return redirect(url_for('main.index'))
 
 
 @main_blueprint.app_errorhandler(403)
@@ -118,3 +131,8 @@ def page_not_found(e):
 @main_blueprint.app_errorhandler(500)
 def internal_server_error(e):
     return render_template('errors/500.html'), 500
+
+
+@main_blueprint.app_context_processor
+def inject_current_user():
+    return dict(current_user=UserModel.query.first)

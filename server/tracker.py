@@ -334,7 +334,7 @@ class TrackerService(KademliaService):
             if not result:
                 error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
         debug(f'TrackerService.exposed_client_find_value - Finish method with value result: {value}')
-        return value
+        return value.to_json()
 
     def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore, remove_messages: bool):
         contact = None
@@ -355,18 +355,19 @@ class TrackerService(KademliaService):
         if not result:
             debug(f'TrackerService.find_value_lookup - No connection to the node: {contact} was established')
             return
-        debug(f'TrackerService.find_value_lookup - Update the table with contact: {contact}')
-        self.update_contact(contact)
-        debug(f'TrackerService.find_value_lookup - Cloning contacts received')
-        new_contacts = map(Contact.from_json, new_contacts)
-        value = UserData.from_json(value)
-        debug(f'TrackerService.find_value_lookup - Acquire lock for last value')
-        last_value_lock.acquire()
-        debug(f'TrackerService.find_value_lookup - Checking for update last value.')
-        debug(f'TrackerService.find_value_lookup - Update the last value')
-        last_value.update(value)
-        debug(f'TrackerService.find_value_lookup - Release lock for last value')
-        last_value_lock.release()
+        if value:
+            debug(f'TrackerService.find_value_lookup - Update the table with contact: {contact}')
+            self.update_contact(contact)
+            debug(f'TrackerService.find_value_lookup - Cloning contacts received')
+            new_contacts = map(Contact.from_json, new_contacts)
+            value = UserData.from_json(value)
+            debug(f'TrackerService.find_value_lookup - Acquire lock for last value')
+            last_value_lock.acquire()
+            debug(f'TrackerService.find_value_lookup - Checking for update last value.')
+            debug(f'TrackerService.find_value_lookup - Update the last value')
+            last_value.update(value)
+            debug(f'TrackerService.find_value_lookup - Release lock for last value')
+            last_value_lock.release()
         debug(f'TrackerService.find_value_lookup - Iterate by contacts')
         for new_contact in new_contacts:
             debug(f'TrackerService.find_value_lookup - Pinging to contact: {new_contact}')

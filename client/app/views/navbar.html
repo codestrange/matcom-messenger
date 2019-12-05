@@ -19,6 +19,27 @@
                     <a class="nav-link" href="{{ url_for('main.add_contact') }}">Add Contact</a>
                 </li>
             </ul>
+            <ul class="navbar-nav align-content-end">
+                {% if current_user() %}
+                <li class="nav-item dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" href="#" id="dropdownUserInfo" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user-circle mr-1"></i>
+                        {{ current_user().name }} 
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUserInfo">
+                        <a class="dropdown-item" href="{{ url_for('main.profile') }}">
+                            <i class="fas fa-user mr-2"></i>
+                            See Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('main.logout') }}">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </nav>
     {% endblock navbar %}

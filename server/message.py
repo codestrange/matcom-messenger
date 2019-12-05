@@ -6,7 +6,7 @@ class Message:
         self.text = text
         self.sender = sender
         self.time = time
-        self.id = get_hash(':'.join([sender, time, text]))
+        self.id = get_hash(':'.join([str(sender), time, text]))
 
     def __hash__(self):
         return self.id
@@ -26,4 +26,5 @@ class Message:
     
     @staticmethod
     def from_json(data:str):
-        return Message(data['text'], data['time'], data['sender'])
+        data = loads(data)
+        return Message(data['text'], data['sender'], data['time'])

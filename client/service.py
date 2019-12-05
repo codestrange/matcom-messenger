@@ -1,4 +1,6 @@
+from datetime import datetime
 from rpyc import connect, discover, Service
+from sqlalchemy.exc import SQLAlchemyError
 from ..server.message import Message
 from ..server.user_data import UserData
 from ..server.utils import try_function
@@ -16,27 +18,29 @@ class ClientService(Service):
         except Exception:
             return False
         return True
-    
+
     def insert_message(self, message: Message):
         with self.app.app_context():
-            m = MessageModel(message.text, time=message.time)
-            c = ContactModel.query.filter_by(ContactModel.tracker_id=str(message.sender)).first()
+            datetime.strftime
+            m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
+            c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
                 result = ClientService.get_user_data(message.sender)
                 if not result:
                     raise Exception()
                 user_data = UserData.from_json(result)
-                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
+                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
             m.sender = c
             try:
-                db.session.add(c)
-                db.session.commit()
+                self.app.db.session.add(c)
+                self.app.db.session.commit()
             except SQLAlchemyError:
-                db.session.rollback()
+                self.app.db.session.rollback()
 
 
     @staticmethod
-    def send_message_to(text: str, sender_id: int, ip: str, port: int, time: str):
+    def send_message_to(app, text: str, sender_id: int, ip: str, port: int, time: str):
+        sender_id = int(sender_id)
         message = Message(text, sender_id, time)
         smessage = message.to_json()
         try: #Direct connection
@@ -44,6 +48,20 @@ class ClientService(Service):
             result = peer.root.send_message(smessage)
             if result:
                 return result
+            new_data = ClientService.get_user_data(sender_id)
+            if new_data:
+                contact = ContactModel.query.filter_by(tracker_id=sender_id).first()
+                if contact:
+                    contact.ip = new_data.ip
+                    contact.port = new_data.port
+                    contact.name = new_data.name
+                    try:
+                        app.db.session.add(contact)
+                        app.db.session.commit()
+                        peer = connect(new_data.ip, new_data.port)
+                        result = peer.root.send_message(smessage)
+                    except SQLAlchemyError:
+                        app.db.session.rollback()
             raise Exception()
         except Exception: #Send message to DHT
             try:
@@ -83,7 +101,7 @@ class ClientService(Service):
             for node in dht_nodes:
                 try:
                     conn = connect(*node)
-                    result = conn.root.client_store(user.get_id(), user)
+                    result = conn.root.client_store(user.get_id(), user.to_json())
                     if result:
                         return True
                 except Exception:
