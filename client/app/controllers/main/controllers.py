@@ -15,7 +15,7 @@ from .....server import get_hash, TrackerService, UserData
 def index():
     contacts = ContactModel.query.filter(ContactModel.messages).all()
     messages = [contact.messages.order_by(MessageModel.time.desc()).first() for contact in contacts]
-    content = zip(contacts, messages)
+    content = list(zip(contacts, messages))
     return render_template('index.html', content=content)
 
 
