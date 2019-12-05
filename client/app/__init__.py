@@ -27,5 +27,5 @@ def create_app(config_name):
 
 def start_service(app):
     service = ClientService(app)
-    server = ThreadedServer(service, 3000, protocol_config={'allow_public_attrs': True})
+    server = ThreadedServer(service, port=3000, protocol_config={'allow_public_attrs': True})
     server.start()
