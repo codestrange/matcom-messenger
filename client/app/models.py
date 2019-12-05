@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from ...server import get_hash
@@ -30,10 +31,10 @@ class ContactModel(db.Model):
     messages = db.relationship('MessageModel', backref='sender', lazy='dynamic')
 
     def __init__(self, tracker_id, name, host, port):
-        self.tracker_id = tracker_id
+        self.tracker_id = str(tracker_id)
         self.name = name
         self.host = host
-        self.port
+        self.port = port
 
     def __repr__(self):
         return self.name if self.name else f'<{host}, {port}, {tracker_id}>'
@@ -42,12 +43,15 @@ class ContactModel(db.Model):
 class MessageModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
-    time = db.Column(db.DateTime, nullable=False)
+    time = db.Column(db.DateTime, default=datetime.now())
     sender_id = db.Column(db.Integer, db.ForeignKey('contact_model.id'))
+    received = db.Column(db.Boolean, default=True, index=True)
 
-    def __init__(self, text, time):
+    def __init__(self, text, received = True, time = None):
         self.text = text
-        self.time = time
+        self.received = received
+        if time:
+            self.time = time
 
     def __repr__(self):
         return self.text
