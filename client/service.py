@@ -20,11 +20,11 @@ class ClientService(Service):
         pass
 
     @staticmethod
-    def send_message_to(message: Message, to_user: UserData):
+    def send_message_to(text: str, sender_id: int, ip: str, port: int, time: str):
+        message = Message(text, sender_id, time)
         smessage = message.to_json()
-        to_ip, to_port = '0.0.0.0', 3000 
         try: #Direct connection
-            peer = connect(to_ip, to_port)
+            peer = connect(ip, port)
             result = peer.root.send_message(smessage)
             if result:
                 return result
@@ -35,7 +35,7 @@ class ClientService(Service):
                 for node in dht_nodes:
                     try:
                         conn = connect(*node)
-                        result = conn.root.client_store(to_user.get_id(), smessage, option=5)
+                        result = conn.root.client_store(sender_id, smessage, option=5)
                         if result:
                             return True
                     except Exception:
