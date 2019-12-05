@@ -16,15 +16,3 @@ def make_shell_context():
 def init():
     db.drop_all()
     db.create_all()
-    c = ContactModel(1, '+5352464795', 'detnier', '127.0.0.1', 3000)
-    from datetime import datetime
-    m1 = MessageModel('dasdasdasd')
-    m2 = MessageModel('dasdasdasd', False)
-    c.messages.append(m1)
-    c.messages.append(m2)
-    db.session.add(c)
-    c = ContactModel(2, '+5353634222', 'yordamis', '127.0.0.1', 3000)
-    db.session.add(c)
-    u = UserModel('+5353478301', 'leynier')
-    db.session.add(u)
-    db.session.commit()
