@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import flash, render_template, redirect, url_for
+from sqlalchemy.exc import SQLAlchemyError
 from . import main_blueprint
 from .forms import AddContactForm, RegisterForm, SendMessageForm
 from ...decorators import register_required
@@ -29,8 +30,13 @@ def register():
         if not result:
             flash('Network access not available')
             return render_template('register.html', form=form)
-        db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('Error')
+            return render_template('register.html', form=form)
         return redirect(url_for('main.index'))
     else:
         flash_errors(form)
@@ -57,8 +63,13 @@ def add_contact():
             return render_template('add_contact.html', form=form)
         user_data = UserData.from_json(result)
         contact = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
-        db.session.add(contact)
-        db.session.commit()
+        try:
+            db.session.add(content)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('Error')
+            return render_template('add_contact.html', form=form)
         return redirect(url_for('main.contacts'))
     else:
         flash_errors(form)
@@ -80,8 +91,13 @@ def chat(contact_id):
             flash('Network access not available')
             form.text.data = text
             return render_template('chat.html', form=form, contact=contact, messages=messages)
-        db.session.add(message)
-        db.session.commit()
+        try:
+            db.session.add(message)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('Error')
+            return render_template('chat.html', form=form, contact=contact, messages=messages)
         messages = contact.messages.order_by(MessageModel.time.desc()).all()
         form.text.data = ''
     else:
