@@ -1,23 +1,25 @@
 {% extends "navbar.html" %}
 {% block page_content %}
-<div class="col-4 offset-4">
-    <div class="card mb-5 text-white bg-dark">
-        <div class="card-header text-center">
-            <h2 class="m-0">Add Contact</h2>
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                {{ form.csrf_token }}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="form-group">
-                            {{ form.phone.label }}:
-                            {{ form.phone(class="form-control", placeholder="Phone") }}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card mb-5 text-white bg-dark">
+            <div class="card-header text-center">
+                <h2 class="m-0">Add Contact</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                {{ form.phone.label }}:
+                                {{ form.phone(class="form-control", placeholder="Phone") }}
+                            </div>
                         </div>
                     </div>
-                </div>
-                {{ form.submit(class="btn btn-outline-light btn-block") }}
-            </form>
+                    {{ form.submit(class="btn btn-outline-light btn-block") }}
+                </form>
+            </div>
         </div>
     </div>
 </div>
