@@ -98,7 +98,7 @@ class ClientService(Service):
             for node in dht_nodes:
                 try:
                     conn = connect(*node)
-                    result = conn.root.client_store(user.get_id(), user)
+                    result = conn.root.client_store(user.get_id(), user.to_json())
                     if result:
                         return True
                 except Exception:
