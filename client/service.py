@@ -27,7 +27,7 @@ class ClientService(Service):
                 if not result:
                     raise Exception()
                 user_data = UserData.from_json(result)
-                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name(), *user_data.get_dir())
+                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
             m.sender = c
             try:
                 self.app.db.session.add(c)
