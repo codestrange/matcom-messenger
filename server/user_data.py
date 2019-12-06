@@ -188,6 +188,12 @@ class UserData:
         self.__messages.add(message)
         self.__sem_messages.release()
 
+    def get_messages(self):
+        self.__sem_messages.acquire()
+        result = list(self.__messages)
+        self.__sem_messages.release()
+        return result
+
     def clear_messages(self):
         self.__sem_messages.acquire()
         self.__messages.clear()
