@@ -243,7 +243,7 @@ class TrackerService(KademliaService):
                 success = success or result
             elif option == 5:
                 debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
-                result, _ = self.add_message_to(contact, key, value.to_json())
+                result, _ = self.add_message_to(contact, key, value)
                 if not result:
                     error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
                 success = success or result
@@ -439,7 +439,7 @@ class TrackerService(KademliaService):
 
     @try_function()
     def add_message_to(self, contact: Contact, key: int, message: Message) -> bool:
-        debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
+        debug(f'TrackerService.add_message_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         result, peer_time = connection.root.add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
         self.update_lamport(peer_time)
