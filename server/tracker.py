@@ -328,6 +328,7 @@ class TrackerService(KademliaService):
         value = last_value
         if value.get_name()[0] is None:
             return None
+        rvalue = value.to_json()
         if remove_messages:
             value.clear_messages()
         for contact in top_contacts:
@@ -336,7 +337,7 @@ class TrackerService(KademliaService):
             if not result:
                 error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
         debug(f'TrackerService.exposed_client_find_value - Finish method with value result: {value}')
-        return value.to_json()
+        return rvalue
 
     def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore, remove_messages: bool):
         contact = None
