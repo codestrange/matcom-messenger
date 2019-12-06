@@ -19,7 +19,6 @@ class ClientService(Service):
 
     def insert_message(self, message: Message):
         with self.app.app_context():
-            datetime.strftime
             m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
             c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
