@@ -4,12 +4,12 @@ from random import randint
 from threading import Thread, Semaphore
 from time import sleep
 from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_DGRAM
-from rpyc import  connect, discover
+from rpyc import discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
 from .message import Message
 from .user_data import UserData
-from .utils import get_hash, KContactSortedArray, IterativeManager, try_function
+from .utils import connect, get_hash, KContactSortedArray, IterativeManager, try_function
 from .kademlia import Contact, KademliaService
 
 

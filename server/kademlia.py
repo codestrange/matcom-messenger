@@ -3,7 +3,7 @@ from queue import Empty, Queue
 from random import randint
 from threading import Semaphore, Thread
 from time import sleep
-from rpyc import connect, Connection, discover, Service
+from rpyc import Connection, discover, Service
 from rpyc.utils.factory import DiscoveryError
 from .bucket_table import BucketTable
 from .contact import Contact
