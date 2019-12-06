@@ -9,6 +9,8 @@ from rpyc.utils.server import ThreadedServer
 from .config import config
 from .models import db, ContactModel, MessageModel, UserModel
 from ..service import ClientService
+from ...server import UserData
+
 
 admin = Admin()
 
