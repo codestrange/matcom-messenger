@@ -125,5 +125,7 @@ def try_function(times=1, sleep_time=0):
 
 
 def connect(host, port, service=VoidService, config={}, ipv6=False, keepalive=False, timeout=3):
+    timeout = 5
+    config.update({'sync_request_timeout': 1000000})
     s = SocketStream.connect(host, port, ipv6=ipv6, keepalive=keepalive, timeout=timeout)
     return connect_stream(s, service, config)
