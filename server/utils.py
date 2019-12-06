@@ -11,10 +11,17 @@ from .contact import Contact
 
 class IterativeManager:
     def __init__(self, start_cond, start_point, args=(), kwargs=None):
-        pass
+        self.start_cond = start_cond
+        self.target = start_point
+        self.__args = args
+        self.__kwargs = kwargs if kwargs else {}  
 
     def start(self):
-        pass
+        while True:
+            if self.start_cond:
+                self.target(*self.__args, **self.__kwargs)
+            else:
+                break
 
 class ThreadManager:
     def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=1):
