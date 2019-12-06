@@ -82,7 +82,7 @@ def chat(contact_id):
     form = SendMessageForm()
     user = UserModel.query.first()
     contact = ContactModel.query.get_or_404(contact_id)
-    messages = contact.messages.order_by(MessageModel.time).all()
+    messages = contact.messages.order_by(MessageModel.time.desc()).all()
     if form.validate_on_submit():
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
@@ -99,7 +99,7 @@ def chat(contact_id):
             db.session.rollback()
             flash('Error')
             return render_template('chat.html', form=form, contact=contact, messages=messages)
-        messages = contact.messages.order_by(MessageModel.time).all()
+        messages = contact.messages.order_by(MessageModel.time.desc()).all()
         form.text.data = ''
     else:
         flash_errors(form)
