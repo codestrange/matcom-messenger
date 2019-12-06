@@ -46,20 +46,13 @@ class ClientService(Service):
             result = peer.root.send_message(smessage)
             if result:
                 return result
-            new_data = ClientService.get_user_data(sender_id)
+            #Verify if the recieber relocated to another ip:port
+            new_data = ClientService.updateDB(app, sender_id)
             if new_data:
-                contact = ContactModel.query.filter_by(tracker_id=sender_id).first()
-                if contact:
-                    contact.ip = new_data.ip
-                    contact.port = new_data.port
-                    contact.name = new_data.name
-                    try:
-                        app.db.session.add(contact)
-                        app.db.session.commit()
-                        peer = connect(new_data.ip, new_data.port)
-                        result = peer.root.send_message(smessage)
-                    except SQLAlchemyError:
-                        app.db.session.rollback()
+                peer = connect(*(new_data.get_dir()[0]))
+                result = peer.root.send_message(smessage)
+                if result:
+                    return result
             raise Exception()
         except Exception: #Send message to DHT
             try:
@@ -106,3 +99,22 @@ class ClientService(Service):
                     continue
         except Exception:
             return False
+
+    @staticmethod
+    def updateDB(app, user: int):
+        user = int(user)
+        try:
+            user = ClientService.get_user_data(user)
+            if user:
+                user = UserData.from_json(user)
+                puser = ContactModel.query.filter_by(tracker_id=str(user.get_id())).first()
+                puser = puser if puser else ContactModel(str(user.get_id()), user.get_phone(), user.get_name()[0], *(user.get_dir()[0]))
+                try:
+                    app.db.session.add(puser)
+                    app.db.session.commit()
+                except SQLAlchemyError as e:
+                    print(e)
+                    app.db.session.rollback()
+            return user
+        except Exception:
+            return None
