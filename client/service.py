@@ -36,8 +36,9 @@ class ClientService(Service):
 
 
     @staticmethod
-    def send_message_to(app, text: str, sender_id: int, ip: str, port: int, time: str):
+    def send_message_to(app, text: str, sender_id: int, to_id:int, ip: str, port: int, time: str):
         sender_id = int(sender_id)
+        to_id = int(to_id)
         message = Message(text, sender_id, time)
         smessage = message.to_json()
         try: #Direct connection
@@ -46,7 +47,7 @@ class ClientService(Service):
             if result:
                 return result
             #Verify if the recieber relocated to another ip:port
-            new_data = ClientService.updateDB(app, sender_id)
+            new_data = ClientService.updateDB(app, to_id)
             if new_data:
                 peer = connect(*(new_data.get_dir()[0]))
                 result = peer.root.send_message(smessage)
@@ -59,7 +60,7 @@ class ClientService(Service):
                 for node in dht_nodes:
                     try:
                         conn = connect(*node)
-                        result = conn.root.client_store(sender_id, smessage, option=5)
+                        result = conn.root.client_store(to_id, smessage, option=5)
                         if result:
                             return True
                     except Exception:
