@@ -276,11 +276,9 @@ class UserData:
             else:
                 self.__non_groups.add(group)
                 self.__groups_time[group] = new_user_data.__groups_time[group]
-        self.__sem_messages.acquire()
+        self.__sem_groups.release()
         for message in new_user_data.__messages:
             self.add_message(message)
-        self.__sem_messages.release()
-        self.__sem_groups.release()
 
     def set_times(self, time: int):
         debug(f'UserData - Start set times')
@@ -298,4 +296,3 @@ class UserData:
         self.__dir_time = time
         self.__sem_dir.release()
         debug(f'UserData - End set times')
-
