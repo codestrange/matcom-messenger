@@ -549,7 +549,7 @@ class KademliaService(Service):
         debug(f'KademliaService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
         result, peer_time = None, None
         if self.my_contact == contact:
-            result, peer_time = self.exposed_find_node(self.my_contact.to_json(), self.lamport, id))
+            result, peer_time = self.exposed_find_node(self.my_contact.to_json(), self.lamport, id)
         else:
             connection = self.connect(contact)
             result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
