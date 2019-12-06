@@ -83,6 +83,7 @@ class BucketTable:
             right[rindex].semaphore.release()
             rindex += 1
         debug(f'BucketTable.get_closest_buckets - Finish the method')
+        assert result != None
         return result
 
     def __iter__(self):

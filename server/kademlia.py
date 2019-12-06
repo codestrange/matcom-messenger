@@ -84,7 +84,9 @@ class KademliaService(Service):
         self.update_contact(client)
         result = []
         count = 0
-        for contact in list(self.table.get_closest_buckets(id)):
+        table_contacts = self.table.get_closest_buckets(id)
+        assert table_contacts != None
+        for contact in table_contacts:
             result.append(contact.to_json())
             count += 1
             if count >= self.k:
