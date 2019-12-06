@@ -348,12 +348,10 @@ class KademliaService(Service):
         if not result:
             debug(f'KademliaService.find_value_lookup - No connection to the node: {contact} was established')
             return
+        debug(f'KademliaService.find_value_lookup - Cloning contacts received')
+        new_contacts = map(Contact.from_json, new_contacts)
         if temp:
             value, time = temp
-            debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
-            self.update_contact(contact)
-            debug(f'KademliaService.find_value_lookup - Cloning contacts received')
-            new_contacts = map(Contact.from_json, new_contacts)
             debug(f'KademliaService.find_value_lookup - Acquire lock for last value')
             last_value_lock.acquire()
             debug(f'KademliaService.find_value_lookup - Checking for update last value. Actual Time: {time}, Last Time: {last_value[1]}')
@@ -362,6 +360,8 @@ class KademliaService(Service):
                 last_value[0], last_value[1] =  value, time
             debug(f'KademliaService.find_value_lookup - Release lock for last value')
             last_value_lock.release()
+        debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
+        self.update_contact(contact)
         debug(f'KademliaService.find_value_lookup - Iterate by contacts')
         for new_contact in new_contacts:
             debug(f'KademliaService.find_value_lookup - Pinging to contact: {new_contact}')
