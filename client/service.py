@@ -42,14 +42,14 @@ class ClientService(Service):
         message = Message(text, sender_id, time)
         smessage = message.to_json()
         try: #Direct connection
-            peer = connect(ip, port)
+            peer = connect(ip, port, timeout=0.5)
             result = peer.root.send_message(smessage)
             if result:
                 return result
             #Verify if the recieber relocated to another ip:port
             new_data = ClientService.updateDB(app, to_id)
             if new_data:
-                peer = connect(*(new_data.get_dir()[0]))
+                peer = connect(*(new_data.get_dir()[0]), timeout=0.5)
                 result = peer.root.send_message(smessage)
                 if result:
                     return result
