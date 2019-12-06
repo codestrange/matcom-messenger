@@ -1,10 +1,8 @@
 from datetime import datetime
-from rpyc import connect, discover, Service
+from rpyc import discover, Service
 from sqlalchemy.exc import SQLAlchemyError
-from ..server.message import Message
-from ..server.user_data import UserData
-from ..server.utils import try_function
 from .app.models import MessageModel, ContactModel
+from ..server import connect, Message, UserData
 
 
 class ClientService(Service):
