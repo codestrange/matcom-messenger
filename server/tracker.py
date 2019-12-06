@@ -326,8 +326,10 @@ class TrackerService(KademliaService):
         manager.start()
         debug(f'TrackerService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
         value = last_value
-        if value.get_name() is None:
+        if value.get_name()[0] is None:
             return None
+        if remove_messages:
+            value.clear_messages()
         for contact in top_contacts:
             debug(f'TrackerService.exposed_client_find_value - Storing key: {key} with value: {value} in contact: {contact}')
             result, _ = self.store_to(contact, key, value.to_json())
