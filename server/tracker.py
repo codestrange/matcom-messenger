@@ -9,7 +9,7 @@ from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
 from .message import Message
 from .user_data import UserData
-from .utils import get_hash, KContactSortedArray, ThreadManager, try_function
+from .utils import get_hash, KContactSortedArray, IterativeManager, try_function
 from .kademlia import Contact, KademliaService
 
 
@@ -208,8 +208,8 @@ class TrackerService(KademliaService):
             if queue.qsize() >= self.a:
                 debug('TrackerService.exposed_client_store -  Initial alpha nodes completed')
                 break
-        debug('TrackerService.exposed_client_store - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
+        debug('TrackerService.exposed_client_store - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
         if option == 0:
@@ -321,8 +321,8 @@ class TrackerService(KademliaService):
             if queue.qsize() >= self.a:
                 debug('TrackerService.exposed_client_find_value -  Initial alpha nodes completed')
                 break
-        debug('TrackerService.exposed_client_find_value - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock, remove_messages))
+        debug('TrackerService.exposed_client_find_value - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock, remove_messages))
         manager.start()
         debug(f'TrackerService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
         value = last_value

@@ -7,7 +7,7 @@ from rpyc import connect, Connection, discover, Service
 from rpyc.utils.factory import DiscoveryError
 from .bucket_table import BucketTable
 from .contact import Contact
-from .utils import connect, KContactSortedArray, ThreadManager, try_function
+from .utils import connect, KContactSortedArray, IterativeManager, try_function
 
 
 class KademliaService(Service):
@@ -141,8 +141,8 @@ class KademliaService(Service):
             if queue.qsize() >= self.a:
                 debug('KademliaService.exposed_client_store -  Initial alpha nodes completed')
                 break
-        debug('KademliaService.exposed_client_store - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
+        debug('KademliaService.exposed_client_store - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
         time = self.lamport if store_time is None else store_time
@@ -229,8 +229,8 @@ class KademliaService(Service):
             if queue.qsize() >= self.a:
                 debug('KademliaService.exposed_client_find_node -  Initial alpha nodes completed')
                 break
-        debug('KademliaService.exposed_client_find_node - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.find_node_lookup, args=(id, queue, top_contacts, visited, queue_lock))
+        debug('KademliaService.exposed_client_find_node - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.find_node_lookup, args=(id, queue, top_contacts, visited, queue_lock))
         manager.start()
         debug(f'KademliaService.exposed_client_find_node - Iterate the closest K nodes to find the node: {id}')
         for contact in top_contacts:
@@ -314,8 +314,8 @@ class KademliaService(Service):
             if queue.qsize() >= self.a:
                 debug('KademliaService.exposed_client_find_value -  Initial alpha nodes completed')
                 break
-        debug('KademliaService.exposed_client_find_value - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock))
+        debug('KademliaService.exposed_client_find_value - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock))
         manager.start()
         debug(f'KademliaService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
         value, time = last_value

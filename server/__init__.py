@@ -5,4 +5,4 @@ from .kademlia import KademliaService
 from .message import Message
 from .tracker import TrackerService
 from .user_data import UserData
-from .utils import connect, KContactSortedArray, ThreadManager, get_hash, get_id, try_function
+from .utils import connect, KContactSortedArray, IterativeManager, ThreadManager, get_hash, get_id, try_function
