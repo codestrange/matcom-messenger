@@ -11,6 +11,12 @@ class Message:
     def __hash__(self):
         return self.id
 
+    def __eq__(self, obj):
+        return self.__hash__() == obj.__hash__()
+
+    def __ne__(self, obj):
+        return self.__hash__() != obj.__hash__()
+
     def __str__(self):
         return repr(self)
 

@@ -82,12 +82,12 @@ def chat(contact_id):
     form = SendMessageForm()
     user = UserModel.query.first()
     contact = ContactModel.query.get_or_404(contact_id)
-    messages = contact.messages.order_by(MessageModel.time).all()
+    messages = contact.messages.order_by(MessageModel.time.desc()).all()
     if form.validate_on_submit():
         text = form.text.data
         message = MessageModel(text, False, datetime.now())
         message.sender = contact
-        result = ClientService.send_message_to(current_app, text, user.tracker_id, contact.ip, contact.port, str(message.time))
+        result = ClientService.send_message_to(current_app, text, user.tracker_id, contact.tracker_id, contact.ip, contact.port, str(message.time))
         if not result:
             flash('Network access not available')
             form.text.data = text
@@ -99,7 +99,7 @@ def chat(contact_id):
             db.session.rollback()
             flash('Error')
             return render_template('chat.html', form=form, contact=contact, messages=messages)
-        messages = contact.messages.order_by(MessageModel.time).all()
+        messages = contact.messages.order_by(MessageModel.time.desc()).all()
         form.text.data = ''
     else:
         flash_errors(form)
@@ -116,6 +116,11 @@ def logout():
     db.drop_all()
     db.create_all()
     return redirect(url_for('main.index'))
+
+
+@main_blueprint.route('/reload/<contact_id>', methods=['GET'])
+def reload(contact_id):
+    return redirect(url_for('main.chat', contact_id=contact_id))
 
 
 @main_blueprint.app_errorhandler(403)

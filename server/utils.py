@@ -9,8 +9,20 @@ from rpyc.utils.factory import connect_stream
 from .contact import Contact
 
 
+class IterativeManager:
+    def __init__(self, start_cond, start_point, args=(), kwargs=None):
+        self.start_cond = start_cond
+        self.target = start_point
+        self.__args = args
+        self.__kwargs = kwargs if kwargs else {} 
+
+    def start(self):
+        while self.start_cond():
+            self.target(*self.__args, **self.__kwargs)
+
+
 class ThreadManager:
-    def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=0.1):
+    def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=1):
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args

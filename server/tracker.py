@@ -4,12 +4,12 @@ from random import randint
 from threading import Thread, Semaphore
 from time import sleep
 from socket import gethostbyname, gethostname, socket, AF_INET, SOCK_DGRAM
-from rpyc import  connect, discover
+from rpyc import discover
 from rpyc.utils.server import ThreadedServer
 from rpyc.utils.registry import UDPRegistryClient, UDPRegistryServer, DEFAULT_PRUNING_TIMEOUT
 from .message import Message
 from .user_data import UserData
-from .utils import get_hash, KContactSortedArray, ThreadManager, try_function
+from .utils import connect, get_hash, KContactSortedArray, IterativeManager, try_function
 from .kademlia import Contact, KademliaService
 
 
@@ -208,8 +208,8 @@ class TrackerService(KademliaService):
             if queue.qsize() >= self.a:
                 debug('TrackerService.exposed_client_store -  Initial alpha nodes completed')
                 break
-        debug('TrackerService.exposed_client_store - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
+        debug('TrackerService.exposed_client_store - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.store_lookup, args=(key, queue, top_contacts, visited, queue_lock))
         manager.start()
         success = False
         if option == 0:
@@ -243,7 +243,7 @@ class TrackerService(KademliaService):
                 success = success or result
             elif option == 5:
                 debug(f'TrackerService.exposed_client_store - Storing key: {key} with value: {value} in contact: {contact}')
-                result, _ = self.add_message_to(contact, key, value.to_json())
+                result, _ = self.add_message_to(contact, key, value)
                 if not result:
                     error(f'TrackerService.exposed_client_store - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
                 success = success or result
@@ -321,20 +321,23 @@ class TrackerService(KademliaService):
             if queue.qsize() >= self.a:
                 debug('TrackerService.exposed_client_find_value -  Initial alpha nodes completed')
                 break
-        debug('TrackerService.exposed_client_find_value - Starting the ThreadManager')
-        manager = ThreadManager(self.a, queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock, remove_messages))
+        debug('TrackerService.exposed_client_find_value - Starting the IterativeManager')
+        manager = IterativeManager(queue.qsize, self.find_value_lookup, args=(key, queue, top_contacts, visited, queue_lock, last_value, last_value_lock, remove_messages))
         manager.start()
         debug(f'TrackerService.exposed_client_find_value - Iterate the closest K nodes to find the key: {key}')
         value = last_value
-        if value.get_name() is None:
+        if value.get_name()[0] is None:
             return None
+        rvalue = value.to_json()
+        if remove_messages:
+            value.clear_messages()
         for contact in top_contacts:
             debug(f'TrackerService.exposed_client_find_value - Storing key: {key} with value: {value} in contact: {contact}')
             result, _ = self.store_to(contact, key, value.to_json())
             if not result:
                 error(f'TrackerService.exposed_client_find_value - The stored of key: {key} with value: {value} in contact: {contact} was NOT successfuly')
         debug(f'TrackerService.exposed_client_find_value - Finish method with value result: {value}')
-        return value.to_json()
+        return rvalue
 
     def find_value_lookup(self, key: int, queue: Queue, top: KContactSortedArray, visited: set, queue_lock: Semaphore, last_value: UserData, last_value_lock: Semaphore, remove_messages: bool):
         contact = None
@@ -439,7 +442,7 @@ class TrackerService(KademliaService):
 
     @try_function()
     def add_message_to(self, contact: Contact, key: int, message: Message) -> bool:
-        debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
+        debug(f'TrackerService.add_message_to - Trying store to contact: {contact} for key: {key}.')
         connection = self.connect(contact)
         result, peer_time = connection.root.add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
         self.update_lamport(peer_time)
