@@ -54,7 +54,7 @@ class UserData:
             'groups_time': self.__groups_time,
             'phone': self.__phone,
             'id': self.__id,
-            'messages': list(self.__messages),
+            'messages': [message.to_json() for message in list(self.__messages)],
             'ip': self.__dir[0],
             'port': self.__dir[1],
             'dir_time': self.__dir_time,
@@ -211,7 +211,7 @@ class UserData:
             user.__non_members.add(member)
             user.__members_time[member] = data['members_time'][str(member)]
         for message in data['messages']:
-            user.add_message(message)
+            user.add_message(Message.from_json(message))
         assert(user.__id == data['id'])
         return user
 
