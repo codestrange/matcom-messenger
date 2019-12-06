@@ -14,14 +14,12 @@ class IterativeManager:
         self.start_cond = start_cond
         self.target = start_point
         self.__args = args
-        self.__kwargs = kwargs if kwargs else {}  
+        self.__kwargs = kwargs if kwargs else {} 
 
     def start(self):
-        while True:
-            if self.start_cond:
-                self.target(*self.__args, **self.__kwargs)
-            else:
-                break
+        while self.start_cond():
+            self.target(*self.__args, **self.__kwargs)
+
 
 class ThreadManager:
     def __init__(self, alpha, start_cond, start_point, args=(), kwargs=None, time_sleep=1):
