@@ -68,6 +68,28 @@ class ClientService(Service):
             except Exception:
                 pass
         return False
+    
+    @staticmethod
+    def send_message_to_group(app, text: str, sender_id: int, group_id: int, ip: str, port: int, time: str):
+        sender_id = int(sender_id)
+        sender_id = int(group_id)
+        try:
+            peer = connect(ip, port)
+            group = peer.root.client_find_value(group_id)
+            if not group:
+                return False
+            for member, _ in group.get_members():
+                try:
+                    member = ClientService.updateDB(app, member)
+                    if member:
+                        result = ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]))
+                        if result:
+                            return result
+                except:
+                    pass
+        except Exception:
+            pass
+        return False
 
     @staticmethod
     def get_user_data(id: int, remove_messages: bool = False):
