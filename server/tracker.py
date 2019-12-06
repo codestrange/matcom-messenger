@@ -395,56 +395,84 @@ class TrackerService(KademliaService):
     @try_function()
     def store_to(self, contact: Contact, key: int, value: str) -> bool:
         debug(f'TrackerService.store_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_store(self.my_contact.to_json(), self.lamport, key, value)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def add_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
-        debug(f'TrackerService.add_group_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.add_group(self.my_contact.to_json(), self.lamport, key, group, time)
+        debug(f'TrackerService.add_group_to - Trying add group to contact: {contact} for key: {key}.')
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_add_group(self.my_contact.to_json(), self.lamport, key, group, time)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.add_group(self.my_contact.to_json(), self.lamport, key, group, time)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def remove_group_to(self, contact: Contact, key: int, group: int, time: int) -> bool:
-        debug(f'TrackerService.remove_group_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.remove_group(self.my_contact.to_json(), self.lamport, key, group, time)
+        debug(f'TrackerService.remove_group_to - Trying remove group to contact: {contact} for key: {key}.')
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_remove_group(self.my_contact.to_json(), self.lamport, key, group, time)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.remove_group(self.my_contact.to_json(), self.lamport, key, group, time)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def add_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
-        debug(f'TrackerService.add_member_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.add_member(self.my_contact.to_json(), self.lamport, key, member, time)
+        debug(f'TrackerService.add_member_to - Trying add member to contact: {contact} for key: {key}.')
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_add_member(self.my_contact.to_json(), self.lamport, key, member, time)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.add_member(self.my_contact.to_json(), self.lamport, key, member, time)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def remove_member_to(self, contact: Contact, key: int, member: int, time: int) -> bool:
-        debug(f'TrackerService.remove_member_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, member, time)
+        debug(f'TrackerService.remove_member_to - Trying remove member to contact: {contact} for key: {key}.')
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_remove_member(self.my_contact.to_json(), self.lamport, key, member, time)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.remove_member(self.my_contact.to_json(), self.lamport, key, member, time)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def find_value_to(self, contact: Contact, key: int, remove_messages: bool = False) -> object:
         debug(f'TrackerService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key, remove_messages)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_find_value(self.my_contact.to_json(), self.lamport, key, remove_messages)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key, remove_messages)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def add_message_to(self, contact: Contact, key: int, message: Message) -> bool:
-        debug(f'TrackerService.add_message_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
+        debug(f'TrackerService.add_message_to - Trying add message to contact: {contact} for key: {key}.')
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.add_message(self.my_contact.to_json(), self.lamport, key, message.to_json())
         self.update_lamport(peer_time)
         return result
 
