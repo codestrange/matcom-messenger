@@ -6,6 +6,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_cors import CORS
 from rpyc.utils.server import ThreadedServer
+from sqlalchemy.exc import SQLAlchemyError
 from .config import config
 from .models import db, ContactModel, MessageModel, UserModel
 from ..service import ClientService
@@ -48,6 +49,7 @@ def start_service(app):
 
 
 def get_messages(app):
+    sleep(10)
     while True:
         with app.app_context():
             user = UserModel.query.first()
