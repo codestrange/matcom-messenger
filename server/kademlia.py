@@ -506,11 +506,11 @@ class KademliaService(Service):
         debug(f'KademliaService.update_lamport - Time updated.')
 
     def connect(self, contact: Contact) -> Connection:
-        debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
+        debug(f'KademliaService.connect - Trying to connect with contact: {contact}.')
         self.update_lamport()
         connection = connect(contact.ip, str(contact.port), timeout=0.5)
-        connection.ping()
-        debug(f'KademliaService.Protocol.connect - Connection with contact: {contact} stablished.')
+        # connection.ping()
+        debug(f'KademliaService.connect - Connection with contact: {contact} stablished.')
         return connection
 
     @staticmethod
