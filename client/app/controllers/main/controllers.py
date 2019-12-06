@@ -118,6 +118,11 @@ def logout():
     return redirect(url_for('main.index'))
 
 
+@main_blueprint.route('/reload/<contact_id>', methods=['GET'])
+def reload(contact_id):
+    return redirect(url_for('main.chat', contact_id=contact_id))
+
+
 @main_blueprint.app_errorhandler(403)
 def forbidden(e):
     return render_template('errors/403.html'), 403
