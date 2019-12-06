@@ -50,7 +50,7 @@ def get_messages(app):
         with app.app_context():
             user = UserModel.query.first()
             if user:
-                result = ClientService.get_user_data(user.tracker_id, True)
+                result = ClientService.get_user_data(int(user.tracker_id), True)
                 if result:
                     user = UserData.from_json(result)
                     for message in user.get_messages():
