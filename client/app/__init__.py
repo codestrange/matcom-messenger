@@ -8,7 +8,7 @@ from flask_cors import CORS
 from rpyc.utils.server import ThreadedServer
 from sqlalchemy.exc import SQLAlchemyError
 from .config import config
-from .models import db, ContactModel, MessageModel, UserModel
+from .models import db, ContactModel, GroupModel, MessageModel, UserModel
 from ..service import ClientService
 from ...server import UserData
 
@@ -33,6 +33,7 @@ def create_app(config_name):
     thread.start()
 
     admin.add_view(ModelView(ContactModel, db.session))
+    admin.add_view(ModelView(GroupModel, db.session))
     admin.add_view(ModelView(MessageModel, db.session))
     admin.add_view(ModelView(UserModel, db.session))
 
@@ -71,5 +72,5 @@ def get_messages(app):
                             app.db.session.add(c)
                             app.db.session.commit()
                         except SQLAlchemyError:
-                            app.db.session.rollback()    
+                            app.db.session.rollback()
         sleep(5)
