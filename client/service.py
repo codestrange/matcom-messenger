@@ -36,7 +36,7 @@ class ClientService(Service):
 
 
     @staticmethod
-    def send_message_to(app, text: str, sender_id: int, to_id:int, ip: str, port: int, time: str):
+    def send_message_to(app, text: str, sender_id: int, to_id: int, ip: str, port: int, time: str):
         sender_id = int(sender_id)
         to_id = int(to_id)
         message = Message(text, sender_id, time)
@@ -72,7 +72,7 @@ class ClientService(Service):
     @staticmethod
     def send_message_to_group(app, text: str, sender_id: int, group_id: int, ip: str, port: int, time: str):
         sender_id = int(sender_id)
-        sender_id = int(group_id)
+        group_id = int(group_id)
         try:
             peer = connect(ip, port)
             group = peer.root.client_find_value(group_id)

@@ -49,21 +49,22 @@ class BucketTable:
         debug(f'BucketTable.get_closest_buckets - Iterators members are left: {left} center:{center} right: {right}.')
         lindex = len(left) - 1
         rindex = 0
+        result = []
         center.semaphore.acquire()
         for contact in center:
             debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
-            yield contact
+            result.append(contact)
         center.semaphore.release()
         while lindex >= 0 and rindex < len(right):
             left[lindex].semaphore.acquire()
             for contact in left[lindex]:
                 debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
-                yield contact
+                result.append(contact)
             left[lindex].semaphore.release()
             right[rindex].semaphore.acquire()
             for contact in right[rindex]:
                 debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
-                yield contact
+                result.append(contact)
             right[rindex].semaphore.release()
             lindex -= 1
             rindex += 1
@@ -71,17 +72,19 @@ class BucketTable:
             left[lindex].semaphore.acquire()
             for contact in left[lindex]:
                 debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
-                yield contact
+                result.append(contact)
             left[lindex].semaphore.release()
             lindex -= 1
         while rindex < len(right):
             right[rindex].semaphore.acquire()
             for contact in right[rindex]:
                 debug(f'BucketTable.get_closest_buckets - Returning contact: {contact}.')
-                yield contact
+                result.append(contact)
             right[rindex].semaphore.release()
             rindex += 1
         debug(f'BucketTable.get_closest_buckets - Finish the method')
+        assert result != None
+        return result
 
     def __iter__(self):
         return iter(self.buckets)

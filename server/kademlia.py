@@ -84,7 +84,9 @@ class KademliaService(Service):
         self.update_contact(client)
         result = []
         count = 0
-        for contact in list(self.table.get_closest_buckets(id)):
+        table_contacts = self.table.get_closest_buckets(id)
+        assert table_contacts != None
+        for contact in table_contacts:
             result.append(contact.to_json())
             count += 1
             if count >= self.k:
@@ -348,12 +350,10 @@ class KademliaService(Service):
         if not result:
             debug(f'KademliaService.find_value_lookup - No connection to the node: {contact} was established')
             return
+        debug(f'KademliaService.find_value_lookup - Cloning contacts received')
+        new_contacts = map(Contact.from_json, new_contacts)
         if temp:
             value, time = temp
-            debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
-            self.update_contact(contact)
-            debug(f'KademliaService.find_value_lookup - Cloning contacts received')
-            new_contacts = map(Contact.from_json, new_contacts)
             debug(f'KademliaService.find_value_lookup - Acquire lock for last value')
             last_value_lock.acquire()
             debug(f'KademliaService.find_value_lookup - Checking for update last value. Actual Time: {time}, Last Time: {last_value[1]}')
@@ -362,6 +362,8 @@ class KademliaService(Service):
                 last_value[0], last_value[1] =  value, time
             debug(f'KademliaService.find_value_lookup - Release lock for last value')
             last_value_lock.release()
+        debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
+        self.update_contact(contact)
         debug(f'KademliaService.find_value_lookup - Iterate by contacts')
         for new_contact in new_contacts:
             debug(f'KademliaService.find_value_lookup - Pinging to contact: {new_contact}')
@@ -506,11 +508,11 @@ class KademliaService(Service):
         debug(f'KademliaService.update_lamport - Time updated.')
 
     def connect(self, contact: Contact) -> Connection:
-        debug(f'Protocol.connect - Trying to connect with contact: {contact}.')
+        debug(f'KademliaService.connect - Trying to connect with contact: {contact}.')
         self.update_lamport()
         connection = connect(contact.ip, str(contact.port), timeout=0.5)
-        connection.ping()
-        debug(f'KademliaService.Protocol.connect - Connection with contact: {contact} stablished.')
+        # connection.ping()
+        debug(f'KademliaService.connect - Connection with contact: {contact} stablished.')
         return connection
 
     @staticmethod
@@ -523,31 +525,47 @@ class KademliaService(Service):
     @try_function()
     def ping_to(self, contact: Contact) -> bool:
         debug(f'KademliaService.ping_to - Trying ping to contact: {contact}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_ping(self.my_contact.to_json(), self.lamport)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.ping(self.my_contact.to_json(), self.lamport)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def store_to(self, contact: Contact, key: int, value: str, store_time: int) -> bool:
         debug(f'KademliaService.store_to - Trying store to contact: {contact} for key: {key}.')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_store(self.my_contact.to_json(), self.lamport, key, value, store_time)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.store(self.my_contact.to_json(), self.lamport, key, value, store_time)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def find_node_to(self, contact: Contact, id: int) -> list:
         debug(f'KademliaService.find_node_to - Trying find_node to contact: {contact} for id: {id}')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_find_node(self.my_contact.to_json(), self.lamport, id)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.find_node(self.my_contact.to_json(), self.lamport, id)
         self.update_lamport(peer_time)
         return result
 
     @try_function()
     def find_value_to(self, contact: Contact, key: int) -> object:
         debug(f'KademliaService.find_node_to - Trying find_value to contact: {contact} for key: {key}')
-        connection = self.connect(contact)
-        result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
+        result, peer_time = None, None
+        if self.my_contact == contact:
+            result, peer_time = self.exposed_find_value(self.my_contact.to_json(), self.lamport, key)
+        else:
+            connection = self.connect(contact)
+            result, peer_time = connection.root.find_value(self.my_contact.to_json(), self.lamport, key)
         self.update_lamport(peer_time)
         return result
