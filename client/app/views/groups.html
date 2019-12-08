@@ -4,22 +4,22 @@
     <div class="col-6 offset-3">
         <div class="card mb-3 text-white bg-dark">
             <div class="card-header text-center">
-                <h2 class="m-0">Contacts</h2>
+                <h2 class="m-0">Groups</h2>
             </div>
         </div>
-        {% for contact in contacts %}
+        {% for group in groups %}
         <div class="card text-light bg-dark mb-1">
             <div class="card-body text-center p-0">
-                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong> <small>({{ contact.phone }})</small></a>
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_public', group_id=group.id) }}" role="button"><strong>{{ group.name }}</strong></a>
             </div>
         </div>
         {% endfor %}
-        {% if not contacts %}
-        <h3 class="m-5 text-center">No contacts</h3>
+        {% if not groups %}
+        <h3 class="m-5 text-center">No groups</h3>
         {% endif %}
         <div class="card text-light bg-dark mt-3">
             <div class="card-body text-center p-0">
-                <a class="btn btn-outline-light btn-block" href="{{ url_for('main.add_contact') }}" role="button"><strong>Add Contact</strong></a>
+                <a class="btn btn-outline-light btn-block" href="{{ url_for('main.add_contact') }}" role="button"><strong>Add Group</strong></a>
             </div>
         </div>
     </div>

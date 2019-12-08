@@ -1,0 +1,28 @@
+{% extends "navbar.html" %}
+{% block page_content %}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card mb-3 text-white bg-dark">
+            <div class="card-header text-center">
+                <h2 class="m-0">Add Group</h2>
+            </div>
+        </div>
+        <div class="card mb-5 text-white bg-dark">
+            <div class="card-body p-2">
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                {{ form.id.label }}:
+                                {{ form.id(class="form-control", placeholder="Id") }}
+                            </div>
+                        </div>
+                    </div>
+                    {{ form.submit(class="btn btn-sm btn-outline-light btn-block") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock page_content %}

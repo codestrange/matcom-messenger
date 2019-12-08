@@ -2,7 +2,7 @@ from datetime import datetime
 from logging import error
 from rpyc import discover, Service
 from sqlalchemy.exc import SQLAlchemyError
-from .app.models import MessageModel, ContactModel
+from .app.models import ContactModel, GroupModel, MessageModel
 from ..server import connect, Message, UserData
 
 
@@ -24,14 +24,23 @@ class ClientService(Service):
             m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
             c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
-                result = ClientService.get_user_data(message.sender)
+                result = ClientService.update_db(self.app, message.sender)
                 if not result:
                     raise Exception()
-                user_data = UserData.from_json(result)
-                c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
+                c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             m.sender = c
+            group = None
+            if message.group:
+                g = GroupModel.query.filter_by(tracker_id=str(message.group)).first()
+                if not g:
+                    result = ClientService.update_db(self.app, message.group, True)
+                    if not result:
+                        raise Exception()
+                    g = GroupModel.query.filter_by(tracker_id=str(message.group)).first()
+                group = g
+            m.group = group
             try:
-                self.app.db.session.add(c)
+                self.app.db.session.add(m)
                 self.app.db.session.commit()
             except SQLAlchemyError as e:
                 error(f'ClientService.insert_message - {e}')
@@ -49,7 +58,7 @@ class ClientService(Service):
             if result:
                 return result
             # Verify if the recieber relocated to another ip:port
-            new_data = ClientService.updateDB(app, to_id)
+            new_data = ClientService.update_db(app, to_id)
             if new_data:
                 peer = connect(*(new_data.get_dir()[0]), timeout=0.5)
                 result = peer.root.send_message(smessage)
@@ -63,8 +72,7 @@ class ClientService(Service):
                 for node in dht_nodes:
                     try:
                         conn = connect(*node)
-                        result = conn.root.client_store(to_id, smessage,
-                                                        option=5)
+                        result = conn.root.client_store(to_id, smessage, option=5)
                         if result:
                             return True
                     except Exception as e2:
@@ -96,7 +104,7 @@ class ClientService(Service):
                     if m:
                         dir = m.ip, m.port
                     else:
-                        m = ClientService.updateDB(app, member)
+                        m = ClientService.update_db(app, member)
                         if not m:
                             continue
                         dir = m.get_dir()[0]
@@ -143,23 +151,36 @@ class ClientService(Service):
             return False
 
     @staticmethod
-    def updateDB(app, user: int):
+    def update_db(app, user: int, is_group: bool = False):
         user = int(user)
         try:
             user = ClientService.get_user_data(user)
             if user:
                 user = UserData.from_json(user)
-                puser = ContactModel.query.filter_by(tracker_id=str(user.get_id())).first()
-                puser = puser if puser else ContactModel(str(user.get_id()), user.get_phone(), user.get_name()[0], *(user.get_dir()[0]))
+                puser = None
+                if is_group:
+                    puser = GroupModel.query.filter_by(tracker_id=str(user.get_id())).first()
+                    if puser:
+                        puser.name = user.get_name()[0]
+                    else:
+                        puser = GroupModel(str(user.get_id()), user.get_name()[0])
+                else:
+                    puser = ContactModel.query.filter_by(tracker_id=str(user.get_id())).first()
+                    if puser:
+                        puser.phone = user.get_phone()
+                        puser.name = user.get_name()[0]
+                        puser.ip, puser.port = user.get_dir()[0]
+                    else:
+                        puser = ContactModel(str(user.get_id()), user.get_phone(), user.get_name()[0], *(user.get_dir()[0]))
                 try:
                     app.db.session.add(puser)
                     app.db.session.commit()
                 except SQLAlchemyError as e1:
-                    error(f'ClientService.updateDB - {e1}')
+                    error(f'ClientService.update_db - {e1}')
                     app.db.session.rollback()
             return user
         except Exception as e:
-            error(f'ClientService.updateDB - {e}')
+            error(f'ClientService.update_db - {e}')
             return None
 
     @staticmethod

@@ -7,10 +7,14 @@
                 <h2 class="m-0">Chats</h2>
             </div>
         </div>
-        {% for contact, message in content %}
+        {% for message in messages %}
         <div class="card text-light bg-dark mb-1">
             <div class="card-body text-center p-0">
-                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong>
+                {% if message.group %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_public', group_id=message.group.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
+                {% else %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=message.sender.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
+                {% endif %}
                 <div>
                     <small>{{ message.text }}</small>
                 </div>

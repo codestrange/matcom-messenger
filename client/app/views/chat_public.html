@@ -1,0 +1,51 @@
+{% extends "navbar.html" %}
+{% block page_content %}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card mb-2 text-white bg-dark">
+            <div class="card-header text-center p-1">
+                <h3 class="m-1">Chat - {{ group.name }}</h3>
+                <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.reload_public', group_id=group.id) }}" role="button">Reload</a>
+                <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.remove_group', group_id=group.id) }}" role="button">Leave Group</a>
+            </div>
+        </div>
+        <div class="card mb-2 text-white bg-dark">
+            <div class="card-body p-1">
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                {{ form.text(class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                    {{ form.submit(class="btn btn-outline-light btn-sm btn-block") }}
+                </form>
+            </div>
+        </div>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="row">
+            <div class="col-10 {% if message.received %} offset-2 {% endif %}">
+                <div class="card text-light bg-dark mb-2">
+                    <div class="card-header pt-1 pb-1 {% if message.received %} text-right {% endif %}">
+                        {% if message.sender %}
+                        <small>{{ message.sender.name }} - {{ message.time }}</small>
+                        {% else %}
+                        <small>{{ message.time }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="card-body pt-1 pb-1 {% if message.received %} text-right {% endif %}">
+                        {{ message.text }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3 class="m-5 text-center">No messages</h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock page_content %}
