@@ -50,6 +50,9 @@ class KademliaService(Service):
         debug(f'KademliaService.exposed_ping - End of connection from {client}.')
         return self.my_contact.to_json(), self.lamport
 
+    def exposed_client_update_network(self):
+        pass
+
     def exposed_store(self, client: Contact, client_lamport: int, key: int, value: str, store_time: int) -> bool:
         debug(f'KademliaService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
         if not self.is_initialized:
