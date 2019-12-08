@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import error
 from rpyc import discover, Service
 from sqlalchemy.exc import SQLAlchemyError
 from .app.models import MessageModel, ContactModel
@@ -13,7 +14,8 @@ class ClientService(Service):
         message = Message.from_json(message)
         try:
             self.insert_message(message)
-        except Exception:
+        except Exception as e:
+            error(f'ClientService.exposed_send_message - {e}')
             return False
         return True
 
@@ -31,9 +33,9 @@ class ClientService(Service):
             try:
                 self.app.db.session.add(c)
                 self.app.db.session.commit()
-            except SQLAlchemyError:
+            except SQLAlchemyError as e:
+                error(f'ClientService.insert_message - {e}')
                 self.app.db.session.rollback()
-
 
     @staticmethod
     def send_message_to(app, text: str, sender_id: int, to_id: int, ip: str, port: int, time: str):
@@ -54,7 +56,8 @@ class ClientService(Service):
                 if result:
                     return result
             raise Exception()
-        except Exception: #Send message to DHT
+        except Exception as e: #Send message to DHT
+            error(f'ClientService.send_message_to - {e}')
             try:
                 dht_nodes = discover('TRACKER')
                 for node in dht_nodes:
@@ -63,12 +66,13 @@ class ClientService(Service):
                         result = conn.root.client_store(to_id, smessage, option=5)
                         if result:
                             return True
-                    except Exception:
+                    except Exception as e2:
+                        error(f'ClientService.send_message_to - {e2}')
                         continue
-            except Exception:
-                pass
+            except Exception as e1:
+                error(f'ClientService.send_message_to - {e1}')
         return False
-    
+
     @staticmethod
     def send_message_to_group(app, text: str, sender_id: int, group_id: int, ip: str, port: int, time: str):
         sender_id = int(sender_id)
@@ -85,10 +89,10 @@ class ClientService(Service):
                         result = ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]))
                         if result:
                             return result
-                except:
-                    pass
-        except Exception:
-            pass
+                except Exception as e1:
+                    error(f'ClientService.send_message_to_group - {e1}')
+        except Exception as e:
+            error(f'ClientService.send_message_to_group - {e}')
         return False
 
     @staticmethod
@@ -101,9 +105,11 @@ class ClientService(Service):
                     result = conn.root.client_find_value(id, remove_messages)
                     if result:
                         return result
-                except Exception:
+                except Exception as e1:
+                    error(f'ClientService.get_user_data - {e1}')
                     continue
-        except Exception:
+        except Exception as e:
+            error(f'ClientService.get_user_data - {e}')
             return None
 
     @staticmethod
@@ -117,9 +123,11 @@ class ClientService(Service):
                     result = conn.root.client_store(user.get_id(), user.to_json())
                     if result:
                         return True
-                except Exception:
+                except Exception as e1:
+                    error(f'ClientService.store_user_data - {e1}')
                     continue
-        except Exception:
+        except Exception as e:
+            error(f'ClientService.store_user_data - {e}')
             return False
 
     @staticmethod
@@ -134,9 +142,10 @@ class ClientService(Service):
                 try:
                     app.db.session.add(puser)
                     app.db.session.commit()
-                except SQLAlchemyError as e:
-                    print(e)
+                except SQLAlchemyError as e1:
+                    error(f'ClientService.updateDB - {e1}')
                     app.db.session.rollback()
             return user
-        except Exception:
+        except Exception as e:
+            error(f'ClientService.updateDB - {e}')
             return None
