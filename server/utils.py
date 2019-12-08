@@ -102,7 +102,7 @@ def get_hash(elem: str) -> int:
     return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
-def get_id(elem: str) -> int:
+def get_id(elem: tuple) -> int:
     return get_hash(f'{elem[0]}:{elem[1]}')
 
 
