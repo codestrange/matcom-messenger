@@ -511,6 +511,19 @@ class TrackerService(KademliaService):
                 sleep(0.2)
 
     @staticmethod
+    def __start_update_network(ip: str, port: int):
+        sleep(10)
+        while True:
+            try:
+                debug(f'TrackerService.__start_update_network - Trying to connect to the service to update network')
+                conn = connect(ip, port, config={'sync_request_timeout': 1000000})
+                debug(f'TrackerService.__start_update_network - Executing the remote update network method in the service')
+                conn.root.client_update_network()
+            except Exception as e:
+                error(f'TrackerService.__start_update_network - {e}')
+            sleep(10)
+
+    @staticmethod
     def start(port_random=False, log_to_file=True, inf_port=8000, sup_port=9000):
         port = 8081
         if port_random:
@@ -554,6 +567,9 @@ class TrackerService(KademliaService):
                 error(f'TrackerService.start - Exception: {e}')
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(0.2)
+        debug('TrackerService.start - Starting a thread for the update network')
+        thread_update = Thread(target=TrackerService.__start_update_network, args=(ip, port))
+        thread_update.start()
         info('TrackerService.start - Server started successfully')
 
     @staticmethod
