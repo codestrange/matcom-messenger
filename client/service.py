@@ -98,7 +98,8 @@ class ClientService(Service):
                 if not group:
                     return False
                 result = False
-                for member, _ in group.get_members():
+                group = UserData.from_json(group)
+                for member in group.get_members():
                     dir = None
                     m = ContactModel.query.filter_by(tracker_id=str(member)).first()
                     if m:
@@ -108,7 +109,7 @@ class ClientService(Service):
                         if not m:
                             continue
                         dir = m.get_dir()[0]
-                    result = result or ClientService.send_message_to(app, text, sender_id, member, *dir, group_id=group_id)
+                    result = result or ClientService.send_message_to(app, text, sender_id, member, *dir, time, group_id=group_id)
                 if result:
                     return True
             except Exception as e:
