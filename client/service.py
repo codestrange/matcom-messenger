@@ -160,3 +160,41 @@ class ClientService(Service):
         except Exception as e:
             error(f'ClientService.updateDB - {e}')
             return None
+
+    @staticmethod
+    def add_user_to_group(app, user_id, group_id):
+        user_id = int(user_id)
+        group_id = int(group_id)
+        try:
+            dht_nodes = discover('TRACKER')
+            for node in dht_nodes:
+                try:
+                    peer = connect(*node, timeout=0.5)
+                    result = peer.root.client_store(user_id, group_id, option=1)
+                    result = result or peer.root.client_store(group_id, user_id, option=3)
+                    if result:
+                        return True
+                except:
+                    pass
+        except:
+            pass
+        return False
+
+    @staticmethod
+    def remove_user_from_group(app, user_id, group_id):
+        user_id = int(user_id)
+        group_id = int(group_id)
+        try:
+            dht_nodes = discover('TRACKER')
+            for node in dht_nodes:
+                try:
+                    peer = connect(*node, timeout=0.5)
+                    result = peer.root.client_store(user_id, group_id, option=2)
+                    result = result or peer.root.client_store(group_id, user_id, option=4)
+                    if result:
+                        return True
+                except:
+                    pass
+        except:
+            pass
+        return False
