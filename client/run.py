@@ -1,7 +1,9 @@
 from os import getenv
+from logging import basicConfig, DEBUG
 from .app import create_app
 from .app.models import db, ContactModel, GroupModel, MessageModel, UserModel
 
+basicConfig(filename=f'file.log', filemode='w', format='%(asctime)s - %(levelname)s - %(name)s: %(message)s', level=DEBUG)
 
 app = create_app(getenv('FLASK_CONFIG') or 'default')
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import error
 from flask import current_app, flash, render_template, redirect, url_for
 from sqlalchemy.exc import SQLAlchemyError
 from . import main_blueprint
@@ -33,7 +34,8 @@ def register():
         try:
             db.session.add(user)
             db.session.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            error(f'register - {e}')
             db.session.rollback()
             flash('Error')
             return render_template('register.html', form=form)
@@ -66,7 +68,8 @@ def add_contact():
         try:
             db.session.add(contact)
             db.session.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            error(f'add_contact - {e}')
             db.session.rollback()
             flash('Error')
             return render_template('add_contact.html', form=form)
@@ -95,7 +98,8 @@ def chat(contact_id):
         try:
             db.session.add(message)
             db.session.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            error(f'chat - {e}')
             db.session.rollback()
             flash('Error')
             return render_template('chat.html', form=form, contact=contact, messages=messages)

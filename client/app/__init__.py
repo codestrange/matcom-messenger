@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import error
 from threading import Thread
 from time import sleep
 from flask import Flask
@@ -71,6 +72,7 @@ def get_messages(app):
                         try:
                             app.db.session.add(c)
                             app.db.session.commit()
-                        except SQLAlchemyError:
+                        except SQLAlchemyError as e:
+                            error(f'get_messages - {e}')
                             app.db.session.rollback()
         sleep(5)
