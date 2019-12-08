@@ -69,8 +69,19 @@ def get_messages(app):
                             user_data = UserData.from_json(result)
                             c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
                         m.sender = c
+                        group = None
+                        if message.group:
+                            g = GroupModel.query.filter_by(tracker_id=str(message.group)).first()
+                            if not g:
+                                result = ClientService.get_user_data(message.group)
+                                if not result:
+                                    continue
+                                user_data = UserData.from_json(result)
+                                g = GroupModel(user_data.get_id(), user_data.get_name()[0])
+                            group = g
+                        m.group = group
                         try:
-                            app.db.session.add(c)
+                            app.db.session.add(m)
                             app.db.session.commit()
                         except SQLAlchemyError as e:
                             error(f'get_messages - {e}')
