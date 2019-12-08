@@ -5,6 +5,7 @@
         <div class="card mb-2 text-white bg-dark">
             <div class="card-header text-center p-1">
                 <h3 class="m-1">Chat - {{ group.name }}</h3>
+                <div class="mb-1">{{ group.tracker_id }}</div>
                 <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.reload_public', group_id=group.id) }}" role="button">Reload</a>
                 <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.remove_group', group_id=group.id) }}" role="button">Leave Group</a>
             </div>
