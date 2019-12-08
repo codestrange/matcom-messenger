@@ -53,7 +53,8 @@ class KademliaService(Service):
     def exposed_client_update_network(self):
         if not self.is_initialized:
             error(f'KademliaService.exposed_client_update_network - Instance not initialized')
-        peers = discover(self.ALIASES[0])
+        service_name = KademliaService.get_name(self.__class__)
+        peers = discover(service_name)
         for peer in peers:
             tcontact = Contact(get_id(peer), *peer)
             debug(f'KademliaService.exposed_client_update_network - Making ping to peer: {tcontact}')
@@ -62,7 +63,6 @@ class KademliaService(Service):
                 debug(f'KademliaService.exposed_client_update_network - Successfull ping to peer: {tcontact}')
             else:
                 debug(f'KademliaService.exposed_client_update_network - Unsuccessfull ping to peer: {tcontact}')
-
 
     def exposed_store(self, client: Contact, client_lamport: int, key: int, value: str, store_time: int) -> bool:
         debug(f'KademliaService.exposed_store - Trying to store value in key: {key} at time: {store_time}.')
