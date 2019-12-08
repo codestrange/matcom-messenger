@@ -79,7 +79,8 @@ class ClientService(Service):
         group_id = int(group_id)
         try:
             dht_nodes = discover('TRACKER')
-        except:
+        except Exception as e1:
+            error(f'ClientService.send_message_to_group - {e1}')
             return False
         for node in dht_nodes:
             try:
@@ -89,12 +90,20 @@ class ClientService(Service):
                     return False
                 result = False
                 for member, _ in group.get_members():
-                    member = ClientService.get_user_data(member)
-                    result = result or ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]), group_id=group_id)
+                    dir = None
+                    m = ContactModel.query.filter_by(tracker_id=str(member)).first()
+                    if m:
+                        dir = m.ip, m.port
+                    else:
+                        m = ClientService.updateDB(app, member)
+                        if not m:
+                            continue
+                        dir = m.get_dir()[0]
+                    result = result or ClientService.send_message_to(app, text, sender_id, member, *dir, group_id=group_id)
                 if result:
                     return True
             except Exception as e:
-            	error(f'ClientService.send_message_to_group - {e}')
+                error(f'ClientService.send_message_to_group - {e}')
         return False
 
     @staticmethod
