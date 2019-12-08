@@ -173,7 +173,7 @@ class UserData:
             self.__non_members.remove(member)
             self.__members.add(member)
             self.__members_time[member] = time
-        debug(f'UserData.add_member - State after add. Member: {self.__members}. Time: {self.__grou__members_timeps_time}')
+        debug(f'UserData.add_member - State after add. Member: {self.__members}. Time: {self.__members_time}')
         self.__sem_members.release()
 
     def remove_member(self, member: int, time: int):
