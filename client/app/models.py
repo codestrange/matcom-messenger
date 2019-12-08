@@ -56,7 +56,7 @@ class GroupModel(db.Model):
     messages = db.relationship('MessageModel', backref='group', lazy='dynamic')
 
     def __init__(self, tracker_id, name):
-        self.tracker_id = tracker_id
+        self.tracker_id = str(tracker_id)
         self.name = name
 
     def __repr__(self):
