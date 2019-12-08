@@ -136,6 +136,8 @@ class UserData:
 
     def add_group(self, group: int, time: int):
         self.__sem_groups.acquire()
+        debug(f'UserData.add_group - Group {group} to user {self.get_id()}')
+        debug(f'UserData.add_group - State before add. Group: {self.__groups}. Time: {self.__groups_time}')
         if group not in self.__groups_time:
             self.__groups.add(group)
             self.__groups_time[group] = time
@@ -145,6 +147,7 @@ class UserData:
             self.__non_groups.remove(group)
             self.__groups.add(group)
             self.__groups_time[group] = time
+        debug(f'UserData.add_group - State after add. Group: {self.__groups}. Time: {self.__groups_time}')
         self.__sem_groups.release()
 
     def remove_group(self, group: int, time: int):
@@ -159,6 +162,8 @@ class UserData:
 
     def add_member(self, member: int, time: int):
         self.__sem_members.acquire()
+        debug(f'UserData.add_member - User {member} to group {self.get_id()}')
+        debug(f'UserData.add_member - State before add. Member: {self.__members}. Time: {self.__members_time}')
         if member not in self.__members_time:
             self.__members.add(member)
             self.__members_time[member] = time
@@ -168,6 +173,7 @@ class UserData:
             self.__non_members.remove(member)
             self.__members.add(member)
             self.__members_time[member] = time
+        debug(f'UserData.add_member - State after add. Member: {self.__members}. Time: {self.__grou__members_timeps_time}')
         self.__sem_members.release()
 
     def remove_member(self, member: int, time: int):
@@ -230,6 +236,8 @@ class UserData:
         dir, time = new_user_data.get_dir()
         self.set_dir(*dir, time)
         self.__sem_members.acquire()
+        debug(f'UserData.update - Before update. Self members: f{self.__members}')
+        debug(f'UserData.update - Before update. Other members: f{new_user_data.__members}')
         for member in new_user_data.__members:
             if member in self.__members:
                 self.__members_time[member] = max(self.__members_time[member], new_user_data.__members_time[member])
@@ -252,8 +260,12 @@ class UserData:
             else:
                 self.__non_members.add(member)
                 self.__members_time[member] = new_user_data.__members_time[member]
+        debug(f'UserData.update - After update. Self members: f{self.__members}')
+        debug(f'UserData.update - After update. Other members: f{new_user_data.__members}')
         self.__sem_members.release()
         self.__sem_groups.acquire()
+        debug(f'UserData.update - Before update. Self groups: f{self.__groups}')
+        debug(f'UserData.update - Before update. Other groups: f{new_user_data.__groups}')
         for group in new_user_data.__groups:
             if group in self.__groups:
                 self.__groups_time[group] = max(self.__groups_time[group], new_user_data.__groups_time[group])
@@ -276,6 +288,8 @@ class UserData:
             else:
                 self.__non_groups.add(group)
                 self.__groups_time[group] = new_user_data.__groups_time[group]
+        debug(f'UserData.update - After update. Self groups: f{self.__groups}')
+        debug(f'UserData.update - After update. Other groups: f{new_user_data.__groups}')
         self.__sem_groups.release()
         for message in new_user_data.__messages:
             self.add_message(message)
