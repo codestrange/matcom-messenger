@@ -36,10 +36,10 @@ class ClientService(Service):
 
 
     @staticmethod
-    def send_message_to(app, text: str, sender_id: int, to_id: int, ip: str, port: int, time: str):
+    def send_message_to(app, text: str, sender_id: int, to_id: int, ip: str, port: int, time: str, group_id: int = None):
         sender_id = int(sender_id)
         to_id = int(to_id)
-        message = Message(text, sender_id, time)
+        message = Message(text, sender_id, time, group=group_id)
         smessage = message.to_json()
         try: #Direct connection
             peer = connect(ip, port, timeout=0.5)
@@ -70,25 +70,25 @@ class ClientService(Service):
         return False
     
     @staticmethod
-    def send_message_to_group(app, text: str, sender_id: int, group_id: int, ip: str, port: int, time: str):
+    def send_message_to_group(app, text: str, sender_id: int, group_id: int, time: str):
         sender_id = int(sender_id)
         group_id = int(group_id)
         try:
-            peer = connect(ip, port)
-            group = peer.root.client_find_value(group_id)
-            if not group:
-                return False
-            for member, _ in group.get_members():
-                try:
-                    member = ClientService.updateDB(app, member)
-                    if member:
-                        result = ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]))
-                        if result:
-                            return result
-                except:
-                    pass
-        except Exception:
-            pass
+            dht_nodes = discover('TRACKER')
+        except:
+            return False
+        for node in dht_nodes:
+            try:
+                peer = connect(*node, timeout=0.5)
+                group = peer.root.client_find_value(group_id)
+                if not group:
+                    return False
+                for member, _ in group.get_members():
+                    member = ClientService.get_user_data(member)
+                    ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]), group_id=group_id)
+                return True
+            except:
+                pass
         return False
 
     @staticmethod
@@ -101,9 +101,9 @@ class ClientService(Service):
                     result = conn.root.client_find_value(id, remove_messages)
                     if result:
                         return result
-                except Exception:
+                except:
                     continue
-        except Exception:
+        except:
             return None
 
     @staticmethod
