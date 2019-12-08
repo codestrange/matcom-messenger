@@ -1,6 +1,7 @@
 from json import dumps, loads
 from .utils import get_hash
 
+
 class Message:
     def __init__(self, text: str, sender: int, time: str, group: int = None):
         self.text = text
@@ -33,6 +34,6 @@ class Message:
         return str(self)
 
     @staticmethod
-    def from_json(data:str):
+    def from_json(data: str):
         data = loads(data)
         return Message(data['text'], data['sender'], data['time'], group=data['group'])

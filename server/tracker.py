@@ -266,7 +266,7 @@ class TrackerService(KademliaService):
             debug(f'TrackerService.update_values - Call client store with key: {i[0]}, value: {i[1]}')
             success = success or self.exposed_client_store(i[0], i[1], use_self_time=False)
         debug(f'TrackerService.update_values - Finish with result: {success}')
- 
+
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int, remove_messages: bool = False) -> tuple:
         if not self.is_initialized:
             error(f'TrackerService.exposed_find_value - Instance not initialized')
@@ -381,7 +381,7 @@ class TrackerService(KademliaService):
             self.update_contact(new_contact)
             debug(f'TrackerService.find_value_lookup - Lock the queue')
             queue_lock.acquire()
-            if not new_contact in visited:
+            if new_contact not in visited:
                 debug(f'TrackerService.find_value_lookup - The contact: {new_contact} is NOT in the queue')
                 debug(f'TrackerService.find_value_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
@@ -487,7 +487,7 @@ class TrackerService(KademliaService):
                 break
             except Exception as e:
                 error(f'TrackerService.__start_register - Error starting server to register, sleeping 5 seconds and trying again. Exception: {e}')
-                if not server is None:
+                if server is not None:
                     server.close()
                 sleep(5)
 
@@ -506,7 +506,7 @@ class TrackerService(KademliaService):
             except Exception as e:
                 error('TrackerService.__start_service - Error starting service, sleeping 5 seconds and trying again')
                 error(e)
-                if not server is None:
+                if server is not None:
                     server.close()
                 sleep(0.2)
 
@@ -582,5 +582,5 @@ class TrackerService(KademliaService):
                     s.close()
         except Exception as e:
             error(f'TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered. Exception: {e}')
-            ip = gethostbyname(gethostname()) # This should never happen if the Registry is online
+            ip = gethostbyname(gethostname())  # This should never happen if the Registry is online
         return ip

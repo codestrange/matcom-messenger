@@ -25,7 +25,7 @@ class BucketTable:
         debug(f'BucketTable.get_bucket_index - Getting bucket index for id: {id}.')
         distance = self.id ^ id
         debug(f'BucketTable.get_bucket_index - Distance between {self.id} and {id} = {distance}.')
-        index = max([i for i in range(self.b) if distance & (1<<i) > 0], default=0)
+        index = max([i for i in range(self.b) if distance & (1 << i) > 0], default=0)
         debug(f'BucketTable.get_bucket_index - Resulting index: {index}.')
         return index
 
@@ -45,7 +45,7 @@ class BucketTable:
         debug(f'BucketTable.get_closest_buckets - Index of bucket of id: {id} is {index}')
         left = self.buckets[:index]
         center = self.buckets[index]
-        right = self.buckets[index+1:]
+        right = self.buckets[index + 1:]
         debug(f'BucketTable.get_closest_buckets - Iterators members are left: {left} center:{center} right: {right}.')
         lindex = len(left) - 1
         rindex = 0
@@ -83,7 +83,7 @@ class BucketTable:
             right[rindex].semaphore.release()
             rindex += 1
         debug(f'BucketTable.get_closest_buckets - Finish the method')
-        assert result != None
+        assert result is not None
         return result
 
     def __iter__(self):

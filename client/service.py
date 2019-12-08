@@ -43,12 +43,12 @@ class ClientService(Service):
         to_id = int(to_id)
         message = Message(text, sender_id, time, group=group_id)
         smessage = message.to_json()
-        try: #Direct connection
+        try:  # Direct connection
             peer = connect(ip, port, timeout=0.5)
             result = peer.root.send_message(smessage)
             if result:
                 return result
-            #Verify if the recieber relocated to another ip:port
+            # Verify if the recieber relocated to another ip:port
             new_data = ClientService.updateDB(app, to_id)
             if new_data:
                 peer = connect(*(new_data.get_dir()[0]), timeout=0.5)
@@ -56,14 +56,15 @@ class ClientService(Service):
                 if result:
                     return result
             raise Exception()
-        except Exception as e: #Send message to DHT
+        except Exception as e:  # Send message to DHT
             error(f'ClientService.send_message_to - {e}')
             try:
                 dht_nodes = discover('TRACKER')
                 for node in dht_nodes:
                     try:
                         conn = connect(*node)
-                        result = conn.root.client_store(to_id, smessage, option=5)
+                        result = conn.root.client_store(to_id, smessage,
+                                                        option=5)
                         if result:
                             return True
                     except Exception as e2:
@@ -171,13 +172,13 @@ class ClientService(Service):
                 try:
                     peer = connect(*node, timeout=0.5)
                     result = peer.root.client_store(user_id, group_id, option=1)
-                    result = result or peer.root.client_store(group_id, user_id, option=3)
+                    result = result and peer.root.client_store(group_id, user_id, option=3)
                     if result:
                         return True
-                except:
-                    pass
-        except:
-            pass
+                except Exception as e1:
+                    error(f'ClientService.add_user_to_group - {e1}')
+        except Exception as e:
+            error(f'ClientService.add_user_to_group - {e}')
         return False
 
     @staticmethod
@@ -190,11 +191,11 @@ class ClientService(Service):
                 try:
                     peer = connect(*node, timeout=0.5)
                     result = peer.root.client_store(user_id, group_id, option=2)
-                    result = result or peer.root.client_store(group_id, user_id, option=4)
+                    result = result and peer.root.client_store(group_id, user_id, option=4)
                     if result:
                         return True
-                except:
-                    pass
-        except:
-            pass
+                except Exception as e1:
+                    error(f'ClientService.remove_user_from_group - {e1}')
+        except Exception as e:
+            error(f'ClientService.remove_user_from_group - {e}')
         return False

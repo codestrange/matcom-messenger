@@ -136,7 +136,7 @@ class UserData:
 
     def add_group(self, group: int, time: int):
         self.__sem_groups.acquire()
-        if not group in self.__groups_time:
+        if group not in self.__groups_time:
             self.__groups.add(group)
             self.__groups_time[group] = time
         elif group in self.__groups:
@@ -159,7 +159,7 @@ class UserData:
 
     def add_member(self, member: int, time: int):
         self.__sem_members.acquire()
-        if not member in self.__members_time:
+        if member not in self.__members_time:
             self.__members.add(member)
             self.__members_time[member] = time
         elif member in self.__members:
@@ -183,7 +183,7 @@ class UserData:
     def to_json(self):
         return str(self)
 
-    def add_message(self, message:Message):
+    def add_message(self, message: Message):
         self.__sem_messages.acquire()
         self.__messages.add(message)
         self.__sem_messages.release()

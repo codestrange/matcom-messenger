@@ -26,7 +26,7 @@ class ThreadManager:
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args
-        self.kwargs = kwargs if not kwargs is None else {}
+        self.kwargs = kwargs if kwargs is not None else {}
         self._cont = 0
         self._semcont = Semaphore()
         self.time_sleep = time_sleep

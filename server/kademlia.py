@@ -85,7 +85,7 @@ class KademliaService(Service):
         result = []
         count = 0
         table_contacts = self.table.get_closest_buckets(id)
-        assert table_contacts != None
+        assert table_contacts is not None
         for contact in table_contacts:
             result.append(contact.to_json())
             count += 1
@@ -187,7 +187,7 @@ class KademliaService(Service):
             self.update_contact(new_contact)
             debug(f'KademliaService.store_lookup - Lock the queue')
             queue_lock.acquire()
-            if not new_contact in visited:
+            if new_contact not in visited:
                 debug(f'KademliaService.store_lookup - The contact: {new_contact} is NOT in the queue')
                 debug(f'KademliaService.store_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
@@ -273,7 +273,7 @@ class KademliaService(Service):
             self.update_contact(new_contact)
             debug(f'KademliaService.find_node_lookup - Lock the queue')
             queue_lock.acquire()
-            if not new_contact in visited:
+            if new_contact not in visited:
                 debug(f'KademliaService.find_node_lookup - The contact: {new_contact} is NOT in the queue')
                 debug(f'KademliaService.find_node_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
@@ -359,7 +359,7 @@ class KademliaService(Service):
             debug(f'KademliaService.find_value_lookup - Checking for update last value. Actual Time: {time}, Last Time: {last_value[1]}')
             if time > last_value[1]:
                 debug(f'KademliaService.find_value_lookup - Update the last value')
-                last_value[0], last_value[1] =  value, time
+                last_value[0], last_value[1] = value, time
             debug(f'KademliaService.find_value_lookup - Release lock for last value')
             last_value_lock.release()
         debug(f'KademliaService.find_value_lookup - Update the table with contact: {contact}')
@@ -374,7 +374,7 @@ class KademliaService(Service):
             self.update_contact(new_contact)
             debug(f'KademliaService.find_value_lookup - Lock the queue')
             queue_lock.acquire()
-            if not new_contact in visited:
+            if new_contact not in visited:
                 debug(f'KademliaService.find_value_lookup - The contact: {new_contact} is NOT in the queue')
                 debug(f'KademliaService.find_value_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
