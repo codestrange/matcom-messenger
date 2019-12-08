@@ -161,6 +161,10 @@ def create_group():
         if not result:
             flash('Network access not available')
             return render_template('create_group.html', form=form)
+        result = ClientService.add_user_to_group(current_app, user.tracker_id, tracker_id)
+        if not result:
+            flash('Network access not available')
+            return render_template('create_group.html', form=form)
         try:
             db.session.add(group)
             db.session.commit()
