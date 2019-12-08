@@ -87,10 +87,12 @@ class ClientService(Service):
                 group = peer.root.client_find_value(group_id)
                 if not group:
                     return False
+                result = False
                 for member, _ in group.get_members():
                     member = ClientService.get_user_data(member)
-                    ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]), group_id=group_id)
-                return True
+                    result = result or ClientService.send_message_to(app, text, sender_id, member, *(member.get_dir()[0]), group_id=group_id)
+                if result:
+                    return True
             except Exception as e:
             	error(f'ClientService.send_message_to_group - {e}')
         return False
