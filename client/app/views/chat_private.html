@@ -4,7 +4,7 @@
     <div class="col-6 offset-3">
         <div class="card mb-2 text-white bg-dark">
             <div class="card-header text-center p-1">
-                <h3 class="m-1">Chat - {{ contact.name }}</h3>
+                <h3 class="m-1">Chat - {% if current_user().name == contact.name %} Saved Messages {% else %} {{ contact.name }} {% endif %}</h3>
                 <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.reload_private', contact_id=contact.id) }}" role="button">Reload</a>
             </div>
         </div>
