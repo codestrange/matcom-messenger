@@ -26,7 +26,7 @@ class ThreadManager:
         self.semaphore = Semaphore(value=alpha)
         self.start_cond = start_cond
         self.args = args
-        self.kwargs = kwargs if not kwargs is None else {}
+        self.kwargs = kwargs if kwargs is not None else {}
         self._cont = 0
         self._semcont = Semaphore()
         self.time_sleep = time_sleep
@@ -102,7 +102,7 @@ def get_hash(elem: str) -> int:
     return int.from_bytes(sha1(elem.encode()).digest(), 'little')
 
 
-def get_id(elem: str) -> int:
+def get_id(elem: tuple) -> int:
     return get_hash(f'{elem[0]}:{elem[1]}')
 
 

@@ -1,11 +1,13 @@
 from json import dumps, loads
 from .utils import get_hash
 
+
 class Message:
-    def __init__(self, text: str, sender: int, time: str):
+    def __init__(self, text: str, sender: int, time: str, group: int = None):
         self.text = text
         self.sender = sender
         self.time = time
+        self.group = group
         self.id = get_hash(':'.join([str(sender), time, text]))
 
     def __hash__(self):
@@ -24,13 +26,14 @@ class Message:
         return dumps({
             'time': self.time,
             'sender': self.sender,
-            'text': self.text
+            'text': self.text,
+            'group': self.group
         })
 
     def to_json(self):
         return str(self)
-    
+
     @staticmethod
-    def from_json(data:str):
+    def from_json(data: str):
         data = loads(data)
-        return Message(data['text'], data['sender'], data['time'])
+        return Message(data['text'], data['sender'], data['time'], group=data['group'])

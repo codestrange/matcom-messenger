@@ -266,7 +266,7 @@ class TrackerService(KademliaService):
             debug(f'TrackerService.update_values - Call client store with key: {i[0]}, value: {i[1]}')
             success = success or self.exposed_client_store(i[0], i[1], use_self_time=False)
         debug(f'TrackerService.update_values - Finish with result: {success}')
- 
+
     def exposed_find_value(self, client: Contact, client_lamport: int, key: int, remove_messages: bool = False) -> tuple:
         if not self.is_initialized:
             error(f'TrackerService.exposed_find_value - Instance not initialized')
@@ -381,7 +381,7 @@ class TrackerService(KademliaService):
             self.update_contact(new_contact)
             debug(f'TrackerService.find_value_lookup - Lock the queue')
             queue_lock.acquire()
-            if not new_contact in visited:
+            if new_contact not in visited:
                 debug(f'TrackerService.find_value_lookup - The contact: {new_contact} is NOT in the queue')
                 debug(f'TrackerService.find_value_lookup - Inserting the contact: {new_contact} to the queue and KClosestNode array and marking as visited')
                 visited.add(new_contact)
@@ -487,7 +487,7 @@ class TrackerService(KademliaService):
                 break
             except Exception as e:
                 error(f'TrackerService.__start_register - Error starting server to register, sleeping 5 seconds and trying again. Exception: {e}')
-                if not server is None:
+                if server is not None:
                     server.close()
                 sleep(5)
 
@@ -506,9 +506,22 @@ class TrackerService(KademliaService):
             except Exception as e:
                 error('TrackerService.__start_service - Error starting service, sleeping 5 seconds and trying again')
                 error(e)
-                if not server is None:
+                if server is not None:
                     server.close()
                 sleep(0.2)
+
+    @staticmethod
+    def __start_update_network(ip: str, port: int):
+        sleep(10)
+        while True:
+            try:
+                debug(f'TrackerService.__start_update_network - Trying to connect to the service to update network')
+                conn = connect(ip, port, config={'sync_request_timeout': 1000000})
+                debug(f'TrackerService.__start_update_network - Executing the remote update network method in the service')
+                conn.root.client_update_network()
+            except Exception as e:
+                error(f'TrackerService.__start_update_network - {e}')
+            sleep(10)
 
     @staticmethod
     def start(port_random=False, log_to_file=True, inf_port=8000, sup_port=9000):
@@ -554,6 +567,9 @@ class TrackerService(KademliaService):
                 error(f'TrackerService.start - Exception: {e}')
                 error('TrackerService.start - Error doing JOIN, wait 5 seconds and try again')
                 sleep(0.2)
+        debug('TrackerService.start - Starting a thread for the update network')
+        thread_update = Thread(target=TrackerService.__start_update_network, args=(ip, port))
+        thread_update.start()
         info('TrackerService.start - Server started successfully')
 
     @staticmethod
@@ -582,5 +598,5 @@ class TrackerService(KademliaService):
                     s.close()
         except Exception as e:
             error(f'TrackerService.get_ip - Obtaining IP from a socket locally because no node was discovered. Exception: {e}')
-            ip = gethostbyname(gethostname()) # This should never happen if the Registry is online
+            ip = gethostbyname(gethostname())  # This should never happen if the Registry is online
         return ip

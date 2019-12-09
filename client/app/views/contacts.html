@@ -10,7 +10,11 @@
         {% for contact in contacts %}
         <div class="card text-light bg-dark mb-1">
             <div class="card-body text-center p-0">
-                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong> <small>({{ contact.phone }})</small></a>
+                {% if current_user().name == contact.name %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=contact.id) }}" role="button"><strong>Saved Messages</strong></a>
+                {% else %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong> <small>({{ contact.phone }})</small></a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

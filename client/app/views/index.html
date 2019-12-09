@@ -7,10 +7,18 @@
                 <h2 class="m-0">Chats</h2>
             </div>
         </div>
-        {% for contact, message in content %}
+        {% for message in messages %}
         <div class="card text-light bg-dark mb-1">
             <div class="card-body text-center p-0">
-                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat', contact_id=contact.id) }}" role="button"><strong>{{ contact.name }}</strong>
+                {% if message.group %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_public', group_id=message.group.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
+                {% else %}
+                {% if current_user().name == (message.group.name if message.group else message.sender.name) %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=message.sender.id) }}" role="button"><strong>Saved Messages</strong>
+                {% else %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=message.sender.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
+                {% endif %}
+                {% endif %}
                 <div>
                     <small>{{ message.text }}</small>
                 </div>
@@ -18,7 +26,7 @@
             </div>
         </div>
         {% endfor %}
-        {% if not content %}
+        {% if not messages %}
         <h3 class="m-5 text-center">No chats</h3>
         {% endif %}
     </div>

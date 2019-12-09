@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import error
 from threading import Thread
 from time import sleep
 from flask import Flask
@@ -8,7 +9,7 @@ from flask_cors import CORS
 from rpyc.utils.server import ThreadedServer
 from sqlalchemy.exc import SQLAlchemyError
 from .config import config
-from .models import db, ContactModel, MessageModel, UserModel
+from .models import db, ContactModel, GroupModel, MessageModel, UserModel
 from ..service import ClientService
 from ...server import UserData
 
@@ -33,6 +34,7 @@ def create_app(config_name):
     thread.start()
 
     admin.add_view(ModelView(ContactModel, db.session))
+    admin.add_view(ModelView(GroupModel, db.session))
     admin.add_view(ModelView(MessageModel, db.session))
     admin.add_view(ModelView(UserModel, db.session))
 
@@ -49,7 +51,7 @@ def start_service(app):
 
 
 def get_messages(app):
-    sleep(10)
+    sleep(1)
     while True:
         with app.app_context():
             user = UserModel.query.first()
@@ -67,9 +69,21 @@ def get_messages(app):
                             user_data = UserData.from_json(result)
                             c = ContactModel(user_data.get_id(), user_data.get_phone(), user_data.get_name()[0], *user_data.get_dir()[0])
                         m.sender = c
+                        group = None
+                        if message.group:
+                            g = GroupModel.query.filter_by(tracker_id=str(message.group)).first()
+                            if not g:
+                                result = ClientService.get_user_data(message.group)
+                                if not result:
+                                    continue
+                                user_data = UserData.from_json(result)
+                                g = GroupModel(user_data.get_id(), user_data.get_name()[0])
+                            group = g
+                        m.group = group
                         try:
-                            app.db.session.add(c)
+                            app.db.session.add(m)
                             app.db.session.commit()
-                        except SQLAlchemyError:
-                            app.db.session.rollback()    
+                        except SQLAlchemyError as e:
+                            error(f'get_messages - {e}')
+                            app.db.session.rollback()
         sleep(5)

@@ -1,5 +1,5 @@
 import rpyc
-from server import *
+from server import UserData
 
 leynier = None
 
@@ -11,9 +11,6 @@ def test1():
 
     node_c = nodes[0] if nodes[0][0].split('.')[3] == '13' else nodes[1]
     node_l = nodes[1] if nodes[0][0].split('.')[3] == '13' else nodes[0]
-
-    id_c = get_id(node_c)
-    id_l = get_id(node_l)
 
     c_c = rpyc.connect(*node_c)
     c_l = rpyc.connect(*node_l)
@@ -38,12 +35,14 @@ def test3():
     print(conn.root.client_find_value(leynier.get_id()))
     conn.root.client_data()
 
+
 def test4():
     conn = rpyc.connect('localhost', 8081)
     _, name_time = leynier.get_name()
     leynier.set_name('carlos', name_time + 1)
     print(conn.root.client_store(leynier.get_id(), 123123123123, 2))
     conn.root.client_data()
+
 
 if __name__ == "__main__":
     print('Running test ...')
