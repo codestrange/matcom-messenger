@@ -2,7 +2,7 @@ from datetime import datetime
 from logging import error
 from rpyc import discover, Service
 from sqlalchemy.exc import SQLAlchemyError
-from .app.models import ContactModel, GroupModel, MessageModel
+from .app.models import ContactModel, GroupModel, MessageModel, UserModel
 from ..server import connect, Message, UserData
 
 
@@ -50,6 +50,10 @@ class ClientService(Service):
     def send_message_to(app, text: str, sender_id: int, to_id: int, ip: str, port: int, time: str, group_id: int = None):
         sender_id = int(sender_id)
         to_id = int(to_id)
+        user = UserModel.query.first()
+        if user:
+            if int(user.tracker_id) == sender_id:
+                return True
         message = Message(text, sender_id, time, group=group_id)
         smessage = message.to_json()
         try:  # Direct connection
@@ -109,7 +113,7 @@ class ClientService(Service):
                         if not m:
                             continue
                         dir = m.get_dir()[0]
-                    result = result or ClientService.send_message_to(app, text, sender_id, member, *dir, time, group_id=group_id)
+                    result = result | ClientService.send_message_to(app, text, sender_id, member, *dir, time, group_id=group_id)
                 if result:
                     return True
             except Exception as e:

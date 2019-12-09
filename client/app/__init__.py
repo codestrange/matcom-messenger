@@ -51,7 +51,7 @@ def start_service(app):
 
 
 def get_messages(app):
-    sleep(10)
+    sleep(1)
     while True:
         with app.app_context():
             user = UserModel.query.first()
