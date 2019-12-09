@@ -7,7 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_cors import CORS
 from rpyc.utils.server import ThreadedServer
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from .config import config
 from .models import db, ContactModel, GroupModel, MessageModel, UserModel
 from ..service import ClientService
@@ -54,7 +54,13 @@ def get_messages(app):
     sleep(1)
     while True:
         with app.app_context():
-            user = UserModel.query.first()
+            user = None
+            try:
+                user = UserModel.query.first()
+            except OperationalError:
+                app.db.drop_all()
+                app.db.create_all()
+                user = UserModel.query.first()
             if user:
                 result = ClientService.get_user_data(int(user.tracker_id), True)
                 if result:
