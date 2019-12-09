@@ -52,7 +52,7 @@ class ClientService(Service):
         to_id = int(to_id)
         user = UserModel.query.first()
         if user:
-            if int(user.tracker_id) == sender_id:
+            if int(user.tracker_id) == to_id:
                 return True
         message = Message(text, sender_id, time, group=group_id)
         smessage = message.to_json()
