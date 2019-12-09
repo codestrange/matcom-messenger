@@ -1,6 +1,6 @@
 from os import system
 from sys import argv
-from multiprocessing import Process
+from threading import Thread
 from server import TrackerService
 
 
@@ -16,5 +16,5 @@ def start_client():
     """)
 
 if __name__ == "__main__":
-    Process(target=start_tracker, args=('random' in argv[1:],)).start()
-    Process(target=start_client).start()
+    Thread(target=start_tracker, args=('random' in argv[1:],)).start()
+    Thread(target=start_client).start()
