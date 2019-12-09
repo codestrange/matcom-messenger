@@ -13,7 +13,11 @@
                 {% if message.group %}
                 <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_public', group_id=message.group.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
                 {% else %}
+                {% if current_user().name == (message.group.name if message.group else message.sender.name) %}
+                <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=message.sender.id) }}" role="button"><strong>Messages Saved</strong>
+                {% else %}
                 <a class="btn btn-outline-light btn-sm btn-block" href="{{ url_for('main.chat_private', contact_id=message.sender.id) }}" role="button"><strong>{{ message.group.name if message.group else message.sender.name }}</strong>
+                {% endif %}
                 {% endif %}
                 <div>
                     <small>{{ message.text }}</small>

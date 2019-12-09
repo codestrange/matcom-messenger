@@ -19,6 +19,11 @@
         {% endif %}
         <div class="card text-light bg-dark mt-3">
             <div class="card-body text-center p-0">
+                <a class="btn btn-outline-light btn-block" href="{{ url_for('main.add_group') }}" role="button"><strong>Add Group</strong></a>
+            </div>
+        </div>
+        <div class="card text-light bg-dark mt-1">
+            <div class="card-body text-center p-0">
                 <a class="btn btn-outline-light btn-block" href="{{ url_for('main.create_group') }}" role="button"><strong>Create Group</strong></a>
             </div>
         </div>
