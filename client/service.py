@@ -1,7 +1,7 @@
 from datetime import datetime
 from logging import error
 from rpyc import discover, Service
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from .app.models import ContactModel, GroupModel, MessageModel, UserModel
 from ..server import connect, Message, UserData
 
@@ -21,8 +21,15 @@ class ClientService(Service):
 
     def insert_message(self, message: Message):
         with self.app.app_context():
-            m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
-            c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
+            m, c = None, None
+            try:
+                m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
+                c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
+            except OperationalError:
+                self.app.db.drop_all()
+                self.app.db.create_all()
+                m = MessageModel(message.text, time=datetime.strptime(message.time, '%Y-%m-%d %H:%M:%S.%f'))
+                c = ContactModel.query.filter_by(tracker_id=str(message.sender)).first()
             if not c:
                 result = ClientService.update_db(self.app, message.sender)
                 if not result:
