@@ -4,4 +4,4 @@ Flask-Cors==3.0.9
 flask-shell-ipython==0.4.1
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.2
-rpyc==4.1.2
+rpyc==6.0.0
