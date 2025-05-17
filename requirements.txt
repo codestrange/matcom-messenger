@@ -1,6 +1,6 @@
 Flask==2.3.2
 Flask-Admin==1.5.4
-Flask-Cors==5.0.0
+Flask-Cors==6.0.0
 flask-shell-ipython==0.4.1
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.2
